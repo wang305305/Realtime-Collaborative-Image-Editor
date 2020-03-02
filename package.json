@@ -1,0 +1,26 @@
+{
+  "name": "project-cscc09_winston_leo_wayne",
+  "version": "1.0.0",
+  "description": "Realtime Collaborative Image Editor",
+  "main": "backend/app.js",
+  "dependencies": {
+    "body-parser": "^1.19.0",
+    "express": "^4.17.1",
+    "http": "^0.0.0",
+    "socket.io": "^2.3.0"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/UTSCC09/project-cscc09_winston_leo_wayne.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/UTSCC09/project-cscc09_winston_leo_wayne/issues"
+  },
+  "homepage": "https://github.com/UTSCC09/project-cscc09_winston_leo_wayne#readme"
+}
