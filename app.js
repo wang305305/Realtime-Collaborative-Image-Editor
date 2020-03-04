@@ -34,8 +34,13 @@ let connect = (callback) => {
 io.on('connection', socket => {
   console.log('a user connected');
 
+  //retrive canvas data from remote user
+  socket.on('message', function(data) {
+    io.emit('message', data);
+  });
+
   // init page.
-  connect(db => {
+  /*connect(db => {
     db.collection('points').find().toArray((err, items) => {
       io.emit("load items", items);
     })
@@ -86,7 +91,7 @@ io.on('connection', socket => {
         io.emit("load items", []);
       });
     });
-  });
+  });*/
   
   socket.on('disconnect', () => {
     console.log('user disconnected');
