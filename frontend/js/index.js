@@ -1,62 +1,51 @@
 (function () {
 
   const socket = io();
+  let designer = new CanvasDesigner();
 
-  document.addEventListener("click", e => {
-    if (e.altKey) {
-      let event = {
-        clientX: e.clientX,
-        clientY: e.clientY,
-        ctrlKey: e.ctrlKey,
-        shiftKey: e.shiftKey,
-        altKey: e.altKey,
-        metaKey: e.metaKey,
-      }
-      // send click location.
-      socket.emit("mouse click", event);
-    }
+  window.addEventListener('load', function(){
+    
+    let canvas = document.getElementById("drawing");
+    let ctx = canvas.getContext('2d');
+    ctx.font = '30px Impact'
+    ctx.rotate(0.1)
+    ctx.fillText('Awesome!', 50, 100)
+
+    var text = ctx.measureText('Awesome!')
+    ctx.strokeStyle = 'rgba(0,0,0,0.5)'
+    ctx.beginPath()
+    ctx.lineTo(50, 102)
+    ctx.lineTo(50 + text.width, 102)
+    ctx.stroke()
+
+    //canvas designer
+    //let designer = new CanvasDesigner();
+    designer.widgetHtmlURL = 'https://cdn.webrtc-experiment.com/Canvas-Designer/widget.html'; 
+    designer.widgetJsURL = 'https://cdn.webrtc-experiment.com/Canvas-Designer/widget.js';
+    let designer_container = document.getElementById("designer");
+    designer.appendTo(designer_container);
+    designer.iframe.style.border = '5px solid red';
+    designer.iframe.height = "500";
+    designer.iframe.width = "500";
+
   });
-
-  document.querySelector("#clear").addEventListener("click", e => {
-    socket.emit("clear screen");
-  });
-
-  // create a point at location with listeners.
-  let createElement = (msg) => {
-    let d = document.createElement('div');
-    d.style.position = "absolute";
-    d.style.left = msg.msg.clientX+'px';
-    d.style.top = msg.msg.clientY+'px';
-    d.textContent  = msg.content;
-    d.id  = "point_" + msg._id;
-    d.addEventListener("click", e => {
-      if (e.shiftKey) return socket.emit("shift click element", msg._id);
-      socket.emit("click element", msg._id);
-    });
-    document.querySelector("#messages").append(d);
-  };
 
   // clear page and add points.
-  socket.on('load items' , msg => {
+  /*socket.on('load items' , msg => {
     document.querySelector("#messages").innerHTML = '';
     msg.forEach(item => {
       createElement(item);
     });
+  });*/
+
+  //data passed back from the canvas
+  designer.addSyncListener(function(data) {
+    socket.emit('message', data);
   });
 
-  // create a new point.
-  socket.on('mouse update', (msg) => {
-    createElement(msg);
-  });
-
-  // update a point.
-  socket.on('increment element' , msg => {
-    document.querySelector(`#point_${msg._id}`).textContent = msg.content;
-  });
-
-  // delete a point.
-  socket.on('delete element' , msg => {
-    document.querySelector(`#point_${msg}`).remove();
+  //sync data
+  socket.on('message', function(data) {
+    designer.syncData(data);
   });
 
 }());

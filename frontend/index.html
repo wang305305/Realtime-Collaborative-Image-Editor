@@ -5,13 +5,19 @@
   </head>
 
   <body>
-    <p>Alt+Click to add Element</p>
-    <p>Click Element to Increment</p>
-    <p>Shift+Click Element to Delete</p>
-    <button id="clear">Clear</button>
+    <header>
+      <a href="/" id="title">Canvas</a>
+    </header>
+    
+    <canvas id=drawing width="200" height="150"></canvas>
+    <div style="height: 500px; width: auto;" id="designer"></div>
 
-    <ul id="messages"></ul>
+    
+    <h1>Draw anywhere!</h1>
+    <h2>You will see everyone else who's doing the same.</h2>
+    <h3>Tip: if the stage gets dirty, simply reload the page</h3>
 
+    <script src="/js/canvas-designer-widget.js"></script>
     <script src="/socket.io/socket.io.js"></script>
     <script src="js/index.js"></script>
   </body>
