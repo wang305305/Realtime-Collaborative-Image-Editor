@@ -1,51 +1,31 @@
 (function () {
 
-  const socket = io();
-  let designer = new CanvasDesigner();
+  const socket = io('/');
+  socket.emit('getrooms');
 
-  window.addEventListener('load', function(){
-    
-    let canvas = document.getElementById("drawing");
-    let ctx = canvas.getContext('2d');
-    ctx.font = '30px Impact'
-    ctx.rotate(0.1)
-    ctx.fillText('Awesome!', 50, 100)
 
-    var text = ctx.measureText('Awesome!')
-    ctx.strokeStyle = 'rgba(0,0,0,0.5)'
-    ctx.beginPath()
-    ctx.lineTo(50, 102)
-    ctx.lineTo(50 + text.width, 102)
-    ctx.stroke()
-
-    //canvas designer
-    //let designer = new CanvasDesigner();
-    designer.widgetHtmlURL = 'https://cdn.webrtc-experiment.com/Canvas-Designer/widget.html'; 
-    designer.widgetJsURL = 'https://cdn.webrtc-experiment.com/Canvas-Designer/widget.js';
-    let designer_container = document.getElementById("designer");
-    designer.appendTo(designer_container);
-    designer.iframe.style.border = '5px solid red';
-    designer.iframe.height = "500";
-    designer.iframe.width = "500";
-
+  document.querySelector("#new_room_form").addEventListener("submit", e => {
+    e.preventDefault();
+    let room = document.querySelector("#room_name_input").value;
+    socket.emit("newroom", {room: room});
   });
 
-  // clear page and add points.
-  /*socket.on('load items' , msg => {
-    document.querySelector("#messages").innerHTML = '';
-    msg.forEach(item => {
-      createElement(item);
+
+
+  // display rooms.
+  socket.on('listrooms', rooms => {
+    const room_list = document.querySelector("#room_list");
+    room_list.innerHTML = "";
+    rooms.forEach(room => {
+      let p = document.createElement("p");
+      let a = document.createElement("a");
+      a.setAttribute("href", `${room}`);
+      a.innerHTML = room;
+      p.append(a);
+      room_list.append(p);
     });
-  });*/
-
-  //data passed back from the canvas
-  designer.addSyncListener(function(data) {
-    socket.emit('message', data);
   });
 
-  //sync data
-  socket.on('message', function(data) {
-    designer.syncData(data);
-  });
+
 
 }());
