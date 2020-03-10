@@ -1,24 +1,26 @@
 <!doctype html>
 <html>
-  <head>
-    <title>Socket.IO Canvas</title>
-  </head>
 
-  <body>
-    <header>
-      <a href="/" id="title">Canvas</a>
-    </header>
-    
-    <h1>Realtime Collaborative Image Editor</h1>
-    <form id="new_room_form">
-      Room Name: <input id="room_name_input" type="text">
-      <button type="submit">Create New Room</button>
-    </form>
-    
-    <div id="room_list"></div>
+<head>
+  <title>Socket.IO Canvas</title>
+</head>
+
+<body>
+  <header>
+    <a href="/" id="title">Canvas</a>
+  </header>
+
+  <h1>Realtime Collaborative Image Editor</h1>
+  <form id="new_room_form">
+    Room Name: <input id="room_name_input" type="text">
+    <button type="submit">Create New Room</button>
+  </form>
+
+  <div id="room_list"></div>
 
 
-    <script src="/socket.io/socket.io.js"></script>
-    <script src="js/index.js"></script>
-  </body>
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="js/index.js"></script>
+</body>
+
 </html>

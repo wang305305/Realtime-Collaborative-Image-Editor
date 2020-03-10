@@ -7,7 +7,7 @@
   document.querySelector("#new_room_form").addEventListener("submit", e => {
     e.preventDefault();
     let room = document.querySelector("#room_name_input").value;
-    socket.emit("newroom", {room: room});
+    socket.emit("newroom", { room: room });
   });
 
 
