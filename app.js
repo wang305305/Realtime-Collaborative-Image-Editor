@@ -12,11 +12,11 @@ app.use(bodyParser.json());
 app.use(express.static('frontend'));
 
 app.use((req, res, next) => {
-	console.log("HTTP request", req.method, req.url, req.body);
-	next();
+  console.log("HTTP request", req.method, req.url, req.body);
+  next();
 });
 
-const mongo  = require('mongodb').MongoClient;
+const mongo = require('mongodb').MongoClient;
 const url = 'mongodb://localhost:27017';
 const dbName = 'test';
 const ObjectId = require('mongodb').ObjectId
@@ -26,7 +26,7 @@ const connect = (callback) => {
   mongo.connect(url, {
     useNewUrlParser: true,
     useUnifiedTopology: true
-  },(err, client) => {
+  }, (err, client) => {
     if (err) return console.log(err);
     callback(client.db(dbName));
   });
@@ -36,9 +36,8 @@ const connect = (callback) => {
 app.get("/:room", (req, res, next) => {
   let room = `/${req.params.room}`;
   connect(db => {
-    db.collection('rooms').findOne({room_id: room}, (err, item) => {
+    db.collection('rooms').findOne({ room_id: room }, (err, item) => {
       if (err) return console.log(err);
-      console.log("connect to room");
       if (item) return res.sendFile(__dirname + '/frontend/room.html');
       else return res.redirect('/index.html');
     });
@@ -47,13 +46,12 @@ app.get("/:room", (req, res, next) => {
 
 // redirect to room select page.
 app.get("/", (req, res, next) => {
-  console.log("root");
   res.sendFile(__dirname + '/frontend/index.html');
 });
 
 const getRooms = (callback) => {
   connect(db => {
-    db.collection('rooms').find({}, {_id: 0, canvas: 0}).toArray((err, items) => {
+    db.collection('rooms').find({}, { _id: 0, canvas: 0 }).toArray((err, items) => {
       if (err) return console.log(err);
       let room_list = items.map(item => item.room_id);
       callback(room_list);
@@ -63,7 +61,7 @@ const getRooms = (callback) => {
 
 const findRoom = (room, callback) => {
   connect(db => {
-    db.collection('rooms').findOne({room_id: room}, (err, item) => {
+    db.collection('rooms').findOne({ room_id: room }, (err, item) => {
       if (err) return console.log(err);
       callback(item);
     });
@@ -72,7 +70,7 @@ const findRoom = (room, callback) => {
 
 const createRoom = (room, callback) => {
   connect(db => {
-    db.collection('rooms').insertOne({room_id: room, canvas: ""}, (err, item) => {
+    db.collection('rooms').insertOne({ room_id: room, canvas: "" }, (err, item) => {
       if (err) return console.log(err);
       callback(item);
     });
@@ -81,7 +79,8 @@ const createRoom = (room, callback) => {
 
 const updateRoom = (room, canvas, callback) => {
   connect(db => {
-    db.collection('rooms').findOneAndUpdate({room_id: room}, {$set: {canvas: canvas}}, { returnOriginal: false }, (err, item) => {
+    canvas.startIndex = 0;
+    db.collection('rooms').findOneAndUpdate({ room_id: room }, { $set: { canvas: canvas } }, { returnOriginal: false }, (err, item) => {
       if (err) return console.log(err);
       callback(item);
     });
@@ -100,10 +99,13 @@ io.on('connection', socket => {
   // join the room
   socket.on('joinroom', data => {
     socket.join(data.room);
-    console.log(socket.id, "joined", data.room);
     findRoom(data.room, (item) => {
-      if (item) return io.to(socket.id).emit("firstjoin", {room: item.room_id, canvas: item.canvas});
-      else return io.to(socket.id).emit('redirect', {destination: '/index.html'});
+      if (item) {
+        io.to(socket.id).emit("firstjoin", { room: item.room_id, canvas: item.canvas });
+        io.to(socket.id).emit('canvasload', { room: item.room_id, canvas: item.canvas });
+        return;
+      }
+      else return io.to(socket.id).emit('redirect', { destination: '/index.html' });
     });
   });
 
@@ -123,73 +125,35 @@ io.on('connection', socket => {
 
   //retrive canvas data from remote user
   socket.on('canvasupdate', data => {
-    updateRoom(data.room, data.canvas, (item) => {
-      io.to(data.room).emit('canvasload', {room: item.value.room, canvas: item.value.canvas});
-    })
+    // find the room
+    findRoom(data.room, (item) => {
+      let combinedCanvas = { startIndex: 0 };
+      // modify the points array
+      let oldCanvas = item.canvas;
+      let newCanvas = data.canvas;
+      if (oldCanvas === "") {
+        combinedCanvas["points"] = newCanvas.points;
+      }
+      else {
+        oldCanvas.points[oldCanvas.points.length - 1].pop();
+        newCanvas.points[0].pop();
+        combinedCanvas["points"] = oldCanvas.points.concat(newCanvas.points);
+      }
+      // update the room with the appended array.
+      updateRoom(data.room, combinedCanvas, (item) => {
+        io.to(data.room).emit('canvasload', { room: item.value.room, canvas: combinedCanvas });
+      });
+    });
   });
-  
+
   socket.on('disconnect', () => {
     console.log('user disconnected from', socket.rooms);
   });
-
-  // init page.
-  /*connect(db => {
-    db.collection('points').find().toArray((err, items) => {
-      io.emit("load items", items);
-    })
-  });
-
-  // add a new point
-  socket.on('mouse click', msg => {
-    connect(db => {
-      db.collection('points').insertOne({msg, content:0}, (err, result) => {
-        if (err) return console.log(err);
-        let item = result.ops[0];
-        // update all clients with new point.
-        io.emit("mouse update", item);
-      });
-    });
-  }); 
-
-  // delete point.
-  socket.on('shift click element', msg => {
-    connect(db => {
-      db.collection('points').deleteOne({_id: ObjectId(msg)}, (err, item) => {
-        if (err) return console.log(err);
-        if (!item) return console.log("no item");
-        // delete point from all clients.
-        io.emit("delete element", msg);
-      });
-    });
-  }); 
-  
-  // update a point.
-  socket.on('click element', msg => {
-    connect(db => {
-      db.collection('points').findOneAndUpdate({_id: ObjectId(msg)}, {$inc: {content: 1}}, { returnOriginal: false }, (err, item) => {
-        if (err) return console.log(err);
-        if (!item) return console.log("no item");
-        // update all clients with new point value.
-        io.emit("increment element", item.value);
-      });
-    });
-  }); 
-
-  // delete all points
-  socket.on('clear screen', () => {
-    connect(db => {
-      db.collection('points').deleteMany({}, (err, result) => {
-        if (err) return console.log(err);
-        // load screen with no items.
-        io.emit("load items", []);
-      });
-    });
-  });*/
 });
 
 const PORT = 3000;
 
 http.listen(PORT, function (err) {
-    if (err) console.log(err);
-    else console.log("HTTP server on http://localhost:%s", PORT);
+  if (err) console.log(err);
+  else console.log("HTTP server on http://localhost:%s", PORT);
 });

@@ -1,12 +1,12 @@
 (function () {
 
   const socket = io('/');
-  socket.emit('joinroom', {room: window.location.pathname});
+  socket.emit('joinroom', { room: window.location.pathname });
 
   const designer = new CanvasDesigner();
 
-  window.addEventListener('load', function(){
-    
+  window.addEventListener('load', function () {
+
     let canvas = document.getElementById("drawing");
     let ctx = canvas.getContext('2d');
     ctx.font = '30px Impact'
@@ -23,6 +23,8 @@
     // canvas designer
     designer.widgetHtmlURL = 'https://cdn.webrtc-experiment.com/Canvas-Designer/widget.html'; 
     designer.widgetJsURL = 'https://cdn.webrtc-experiment.com/Canvas-Designer/widget.js';
+    // designer.widgetHtmlURL = '/widget.html';
+    // designer.widgetJsURL = '/js/a.js';
     let designer_container = document.getElementById("designer");
     designer.appendTo(designer_container);
     designer.iframe.style.border = '5px solid black';
@@ -31,15 +33,23 @@
 
   });
 
+  const printCanvas = (action, data) => {
+    console.log("action:", action);
+    if (data.canvas !== "") {
+      console.log("points:", data.canvas.points.length, data.canvas.points);
+      console.log("startIndex:", data.canvas.startIndex);
+    }
+    else console.log("canvas empty");
+  }
+
   // data passed back from the canvas
-  designer.addSyncListener(data => {
-    console.log("addSyncListener", {room: window.location.pathname, canvas: data});
-    socket.emit('canvasupdate', {room: window.location.pathname, canvas: data});
+  designer.addSyncListener(canvasData => {
+    let data = { room: window.location.pathname, canvas: canvasData }
+    socket.emit('canvasupdate', data);
   });
 
   // first join the room.
   socket.on('firstjoin', data => {
-    console.log("firstjoin", data);
     document.querySelector("#room_name").innerHTML = data.room + " Room";
     designer.syncData(data.canvas);
   });
@@ -51,7 +61,6 @@
 
   // sync data
   socket.on('canvasload', data => {
-    console.log("canvasload", data);
     designer.syncData(data.canvas);
   });
 
