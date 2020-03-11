@@ -102,7 +102,7 @@ io.on('connection', socket => {
     findRoom(data.room, (item) => {
       if (item) {
         io.to(socket.id).emit("firstjoin", { room: item.room_id, canvas: item.canvas });
-        io.to(socket.id).emit('canvasload', { room: item.room_id, canvas: item.canvas });
+        // io.to(socket.id).emit('canvasload', { room: item.room_id, canvas: item.canvas });
         return;
       }
       else return io.to(socket.id).emit('redirect', { destination: '/index.html' });
