@@ -1,7 +1,6 @@
 (function () {
 
   const socket = io('/');
-  socket.emit('joinroom', { room: window.location.pathname });
 
   const designer = new CanvasDesigner();
 
@@ -31,6 +30,8 @@
     designer.iframe.height = "500";
     designer.iframe.width = "500";
 
+    socket.emit('joinroom', { room: window.location.pathname });
+
   });
 
   const printCanvas = (action, data) => {
@@ -51,7 +52,9 @@
   // first join the room.
   socket.on('firstjoin', data => {
     document.querySelector("#room_name").innerHTML = data.room + " Room";
-    designer.syncData(data.canvas);
+    setTimeout(() => {
+      designer.syncData(data.canvas);
+    }, 100);
   });
 
   // redirect to index page.
