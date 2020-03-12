@@ -22,6 +22,16 @@
       a.setAttribute("href", `${room}`);
       a.innerHTML = room;
       p.append(a);
+
+      let element = document.createElement('div');
+      element.className = "delete";
+      element.innerHTML = `
+          <button class="delete-icon icon">delete</button>
+      `;
+      element.querySelector('.delete-icon').addEventListener('click', function(e){
+          socket.emit("deleteroom", { room: room });
+      }); 
+      p.append(element);
       room_list.append(p);
     });
   });

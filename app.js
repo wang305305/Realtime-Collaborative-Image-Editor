@@ -87,6 +87,14 @@ const updateRoom = (room, canvas, callback) => {
   });
 };
 
+const deleteRoom = (room, callback) => {
+  connect(db => {
+    db.collection('rooms').deleteOne({ room_id: room }, (res) => {
+      callback(res);
+    });
+  });
+};
+
 io.on('connection', socket => {
 
   // retrive the rooms from database and send.
@@ -119,6 +127,16 @@ io.on('connection', socket => {
         getRooms(room_list => {
           io.emit('listrooms', room_list);
         });
+      });
+    });
+  });
+
+  // delete a room
+  socket.on('deleteroom', data => {
+    deleteRoom(data.room, (res) => {
+      getRooms(room_list => {
+        io.emit('listrooms', room_list);
+        io.to(data.room).emit('redirect', { destination: '/index.html' });
       });
     });
   });
