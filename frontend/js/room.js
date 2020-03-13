@@ -54,7 +54,7 @@
     document.querySelector("#room_name").innerHTML = data.room + " Room";
     setTimeout(() => {
       designer.syncData(data.canvas);
-    }, 100);
+    }, 300);
   });
 
   // redirect to index page.
