@@ -17,8 +17,13 @@ app.use((req, res, next) => {
 });
 
 const mongo = require('mongodb').MongoClient;
+
+const url = 'mongodb://user1:123456a@ds245615.mlab.com:45615/heroku_lbg5q1hr';
+const dbName = 'heroku_lbg5q1hr';
+/*
 const url = 'mongodb://localhost:27017';
 const dbName = 'test';
+*/
 const ObjectId = require('mongodb').ObjectId
 
 // Connect using MongoClient
@@ -169,9 +174,7 @@ io.on('connection', socket => {
   });
 });
 
-const PORT = 3000;
-
-http.listen(PORT, function (err) {
-  if (err) console.log(err);
-  else console.log("HTTP server on http://localhost:%s", PORT);
+const PORT = process.env.PORT || 3000;
+http.listen(PORT, () => {
+    console.log(`Our app is running on port ${ PORT }`);
 });
