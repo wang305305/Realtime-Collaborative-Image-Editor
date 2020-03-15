@@ -1,0 +1,17 @@
+.room-entry {
+  display: flex;
+  flex-direction: row;
+  margin: 5px;
+}
+
+.room-link {
+  margin-right: 100px;
+}
+
+.delete-icon::after {
+  content: "×";
+}
+
+.error {
+  color: red;
+}

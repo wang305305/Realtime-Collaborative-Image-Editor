@@ -1,18 +1,32 @@
 <!doctype html>
 <html>
-  <head>
-    <title>Socket.IO chat</title>
-  </head>
 
-  <body>
-    <p>Alt+Click to add Element</p>
-    <p>Click Element to Increment</p>
-    <p>Shift+Click Element to Delete</p>
-    <button id="clear">Clear</button>
+<head>
+  <title>Realtime Collaborative Image Editor</title>
+  <link href="style/main.css" rel="stylesheet" type="text/css" />
+</head>
 
-    <ul id="messages"></ul>
+<body>
+  <header>
+    <a href="/" id="title">Home</a>
+  </header>
 
-    <script src="/socket.io/socket.io.js"></script>
-    <script src="js/index.js"></script>
-  </body>
+  <h1>Realtime Collaborative Image Editor</h1>
+  <form id="new_room_form">
+    Room Name: <input id="room_name_input" type="text">
+    <button type="submit">Create New Room</button>
+  </form>
+
+  <div id="room_list_block" style="visibility: hidden;">
+    <h2>Room List</h2>
+    <div id="room_list"></div>
+  </div>
+
+  <p class="error" id="error_text" style="visibility: hidden;"></p>
+
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="js/index.js"></script>
+</body>
+
 </html>

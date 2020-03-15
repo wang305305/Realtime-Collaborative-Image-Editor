@@ -1,62 +1,47 @@
 (function () {
 
-  const socket = io();
+  const socket = io('/');
+  socket.emit('getrooms');
 
-  document.addEventListener("click", e => {
-    if (e.altKey) {
-      let event = {
-        clientX: e.clientX,
-        clientY: e.clientY,
-        ctrlKey: e.ctrlKey,
-        shiftKey: e.shiftKey,
-        altKey: e.altKey,
-        metaKey: e.metaKey,
-      }
-      // send click location.
-      socket.emit("mouse click", event);
+  // create a new room.
+  document.querySelector("#new_room_form").addEventListener("submit", e => {
+    e.preventDefault();
+    let room = document.querySelector("#room_name_input").value;
+    document.querySelector("#error_text").innerHTML = "";
+    document.querySelector("#error_text").style.visibility = "hidden";
+    socket.emit("newroom", { room: room });
+  });
+
+  // error.
+  socket.on('error', error => {
+    console.log(error);
+    document.querySelector("#error_text").style.visibility = "visible";
+    document.querySelector("#error_text").innerHTML = error;
+  });
+
+  // display rooms.
+  socket.on('listrooms', rooms => {
+    const room_list_block = document.querySelector("#room_list_block");
+    const room_list = document.querySelector("#room_list");
+    room_list.innerHTML = ""
+    if (rooms.length > 0) {
+      room_list_block.style.visibility = "visible";
+      rooms.forEach(room => {
+        let div = document.createElement("div");
+        div.className = "room-entry";
+        div.innerHTML = `
+        <a href="${room}" class="room-link">${room}</a>
+        <button class="room-delete delete-icon" title="delete this room"></button>`;
+        div.querySelector('.room-delete').addEventListener('click', function(e){
+            socket.emit("deleteroom", { room: room });
+        }); 
+        room_list.append(div);
+      });
+    } else {
+      room_list_block.style.visibility = "hidden";
     }
   });
 
-  document.querySelector("#clear").addEventListener("click", e => {
-    socket.emit("clear screen");
-  });
 
-  // create a point at location with listeners.
-  let createElement = (msg) => {
-    let d = document.createElement('div');
-    d.style.position = "absolute";
-    d.style.left = msg.msg.clientX+'px';
-    d.style.top = msg.msg.clientY+'px';
-    d.textContent  = msg.content;
-    d.id  = "point_" + msg._id;
-    d.addEventListener("click", e => {
-      if (e.shiftKey) return socket.emit("shift click element", msg._id);
-      socket.emit("click element", msg._id);
-    });
-    document.querySelector("#messages").append(d);
-  };
-
-  // clear page and add points.
-  socket.on('load items' , msg => {
-    document.querySelector("#messages").innerHTML = '';
-    msg.forEach(item => {
-      createElement(item);
-    });
-  });
-
-  // create a new point.
-  socket.on('mouse update', (msg) => {
-    createElement(msg);
-  });
-
-  // update a point.
-  socket.on('increment element' , msg => {
-    document.querySelector(`#point_${msg._id}`).textContent = msg.content;
-  });
-
-  // delete a point.
-  socket.on('delete element' , msg => {
-    document.querySelector(`#point_${msg}`).remove();
-  });
 
 }());
