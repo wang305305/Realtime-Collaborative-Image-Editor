@@ -20,11 +20,12 @@ const mongo = require('mongodb').MongoClient;
 
 const url = 'mongodb://user1:123456a@ds245615.mlab.com:45615/heroku_lbg5q1hr';
 const dbName = 'heroku_lbg5q1hr';
-/*
-const url = 'mongodb://localhost:27017';
-const dbName = 'test';
-*/
-const ObjectId = require('mongodb').ObjectId
+
+// const url = 'mongodb://localhost:27017';
+// const dbName = 'test';
+
+const room_list = 'room_list';
+const room_points = 'room_points';
 
 // Connect using MongoClient
 const connect = (callback) => {
@@ -32,17 +33,33 @@ const connect = (callback) => {
     useNewUrlParser: true,
     useUnifiedTopology: true
   }, (err, client) => {
-    if (err) return console.log(err);
+    if (err) return console.error(err);
     callback(client.db(dbName));
   });
 };
+
+// initilize the database.
+connect(db => {
+  // check if collections exist.
+  db.listCollections().toArray((err, collections) => {
+    collections = collections.map(col => col.name);
+    if (collections.indexOf(room_list) == -1) {
+      console.log(`creating collection '${room_list}'`);
+      db.createCollection(room_list);
+    }
+    if (collections.indexOf(room_points) == -1) {
+      console.log(`creating collection '${room_points}'`);
+      db.createCollection(room_points);
+    }
+  });
+});
 
 // connect to room, redirect if room doesn't exist.
 app.get("/:room", (req, res, next) => {
   let room = `/${req.params.room}`;
   connect(db => {
-    db.collection('rooms').findOne({ room_id: room }, (err, item) => {
-      if (err) return console.log(err);
+    db.collection(room_list).findOne({ room_id: room }, (err, item) => {
+      if (err) return console.error(err);
       if (item) return res.sendFile(__dirname + '/frontend/room.html');
       else return res.redirect('/index.html');
     });
@@ -54,54 +71,90 @@ app.get("/", (req, res, next) => {
   res.sendFile(__dirname + '/frontend/index.html');
 });
 
+// gets the list of rooms.
 const getRooms = (callback) => {
   connect(db => {
-    db.collection('rooms').find({}, { _id: 0, canvas: 0 }).toArray((err, items) => {
-      if (err) return console.log(err);
+    db.collection(room_list).find({}, { _id: 0, canvas: 0 }).toArray((err, items) => {
+      if (err) return console.error(err);
       let room_list = items.map(item => item.room_id);
       callback(room_list);
     });
   });
 }
 
+// check if a room exists.
 const findRoom = (room, callback) => {
   connect(db => {
-    db.collection('rooms').findOne({ room_id: room }, (err, item) => {
-      if (err) return console.log(err);
+    db.collection(room_list).findOne({ room_id: room }, (err, item) => {
+      if (err) return console.error(err);
       callback(item);
     });
   });
 };
 
+// creates a new room.
 const createRoom = (room, callback) => {
   connect(db => {
-    db.collection('rooms').insertOne({ room_id: room, canvas: "" }, (err, item) => {
-      if (err) return console.log(err);
+    db.collection(room_list).insertOne({ room_id: room }, (err, item) => {
+      if (err) return console.error(err);
       callback(item);
     });
   });
 };
 
+// gets the entire room.
+const getRoom = (room, callback) => {
+  connect(db => {
+    db.collection(room_points).find({ room_id: room }).toArray((err, items) => {
+      if (err) return console.error(err);
+      let canvas = { points: [], startIndex: 0 };
+      let points = [];
+      // create points array for the room.
+      items.forEach(item => {
+        // remove start and end from points
+        item.canvas.points[0].pop();
+        item.canvas.points[item.canvas.points.length - 1].pop();
+        points = points.concat(item.canvas.points);
+      });
+      if (points.length > 0) {
+        // add start and end to points.
+        points[0].push("start");
+        points[points.length - 1].push("end");
+        canvas.points = points;
+      }
+      let result = { room: room, canvas: canvas};
+      callback(result);
+    });
+  });
+};
+
+// adds a new entry to a room.
 const updateRoom = (room, canvas, callback) => {
   connect(db => {
-    canvas.startIndex = 0;
-    db.collection('rooms').findOneAndUpdate({ room_id: room }, { $set: { canvas: canvas } }, { returnOriginal: false }, (err, item) => {
-      if (err) return console.log(err);
+    db.collection('room_points').insertOne({ room_id: room, canvas: canvas }, (err, item) => {
+      if (err) return console.error(err);
       callback(item);
     });
   });
 };
 
+// deletes the room and all entries.
 const deleteRoom = (room, callback) => {
   connect(db => {
-    db.collection('rooms').deleteOne({ room_id: room }, (res) => {
-      callback(res);
+    db.collection(room_list).deleteOne({ room_id: room }, (err, res) => {
+      if (err) return console.error(err);
+      if (res.deletedCount) console.log(`Deleted room '${room}'`);
+      db.collection(room_points).deleteMany({ room_id: room }, (err, res) => {
+        if (err) return console.error(err);
+        console.log(`Deleted ${res.deletedCount} documents from '${room_points}'.`);
+        callback();
+      })
     });
   });
 };
 
+// create a new socket for the new connection.
 io.on('connection', socket => {
-
   // retrive the rooms from database and send.
   socket.on('getrooms', data => {
     getRooms(room_list => {
@@ -114,9 +167,9 @@ io.on('connection', socket => {
     socket.join(data.room);
     findRoom(data.room, (item) => {
       if (item) {
-        io.to(socket.id).emit("firstjoin", { room: item.room_id, canvas: item.canvas });
-        // io.to(socket.id).emit('canvasload', { room: item.room_id, canvas: item.canvas });
-        return;
+        getRoom(data.room, (item) => {
+          return io.to(socket.id).emit("firstjoin", { room: item.room, canvas: item.canvas });
+        })
       }
       else return io.to(socket.id).emit('redirect', { destination: '/index.html' });
     });
@@ -128,7 +181,7 @@ io.on('connection', socket => {
     // check if room exists
     findRoom(newroom, (item) => {
       if (item) return io.emit('error', `Room ${newroom} already exists.`);
-      createRoom(newroom, (item) => {
+      createRoom(newroom, () => {
         getRooms(room_list => {
           io.emit('listrooms', room_list);
         });
@@ -138,7 +191,7 @@ io.on('connection', socket => {
 
   // delete a room
   socket.on('deleteroom', data => {
-    deleteRoom(data.room, (res) => {
+    deleteRoom(data.room, () => {
       getRooms(room_list => {
         io.emit('listrooms', room_list);
         io.to(data.room).emit('redirect', { destination: '/index.html' });
@@ -148,24 +201,12 @@ io.on('connection', socket => {
 
   //retrive canvas data from remote user
   socket.on('canvasupdate', data => {
-    // find the room
-    findRoom(data.room, (item) => {
-      let combinedCanvas = { startIndex: 0 };
-      // modify the points array
-      let oldCanvas = item.canvas;
-      let newCanvas = data.canvas;
-      if (oldCanvas === "") {
-        combinedCanvas["points"] = newCanvas.points;
-      }
-      else {
-        oldCanvas.points[oldCanvas.points.length - 1].pop();
-        newCanvas.points[0].pop();
-        combinedCanvas["points"] = oldCanvas.points.concat(newCanvas.points);
-      }
-      // update the room with the appended array.
-      updateRoom(data.room, combinedCanvas, (item) => {
-        io.to(data.room).emit('canvasload', { room: item.value.room, canvas: combinedCanvas });
-      });
+
+    // send the update to all users in room.
+    io.to(data.room).emit('canvasload', { room: data.room, canvas: data.canvas });
+
+    // add the new canvas to the database.
+    updateRoom(data.room, data.canvas, (item) => {
     });
   });
 
@@ -176,5 +217,5 @@ io.on('connection', socket => {
 
 const PORT = process.env.PORT || 3000;
 http.listen(PORT, () => {
-    console.log(`Our app is running on port ${ PORT }`);
+  console.log(`Our app is running on port ${PORT}`);
 });
