@@ -8,6 +8,24 @@ Leo Chan chanleo8 1003338435
 
 Wayne Wang wangy337 1002241674
 
+# Beta
+
+https://realtime-image-editor.herokuapp.com/
+
+## Features
+
+- Added Canvas Designer
+
+- Added Real Time Updates and using Socket.IO
+
+- Added Database using MongoDB
+
+- Added Home Page to Create and Delete Documents
+
+- Deployed to heroku
+
+# Proposal
+
 ## Description
 
 Web based image editor that automatically updates between multiple users. 
