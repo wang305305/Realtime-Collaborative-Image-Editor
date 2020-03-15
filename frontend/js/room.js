@@ -6,19 +6,6 @@
 
   window.addEventListener('load', function () {
 
-    let canvas = document.getElementById("drawing");
-    let ctx = canvas.getContext('2d');
-    ctx.font = '30px Impact'
-    ctx.rotate(0.1)
-    ctx.fillText('Awesome!', 50, 100)
-
-    var text = ctx.measureText('Awesome!')
-    ctx.strokeStyle = 'rgba(0,0,0,0.5)'
-    ctx.beginPath()
-    ctx.lineTo(50, 102)
-    ctx.lineTo(50 + text.width, 102)
-    ctx.stroke()
-
     // canvas designer
     designer.widgetHtmlURL = 'https://cdn.webrtc-experiment.com/Canvas-Designer/widget.html'; 
     designer.widgetJsURL = 'https://cdn.webrtc-experiment.com/Canvas-Designer/widget.js';
@@ -34,15 +21,6 @@
 
   });
 
-  const printCanvas = (action, data) => {
-    console.log("action:", action);
-    if (data.canvas !== "") {
-      console.log("points:", data.canvas.points.length, data.canvas.points);
-      console.log("startIndex:", data.canvas.startIndex);
-    }
-    else console.log("canvas empty");
-  }
-
   // data passed back from the canvas
   designer.addSyncListener(canvasData => {
     let data = { room: window.location.pathname, canvas: canvasData }
@@ -51,7 +29,9 @@
 
   // first join the room.
   socket.on('firstjoin', data => {
+    console.log(data);
     document.querySelector("#room_name").innerHTML = data.room + " Room";
+    document.title = data.room + " Room - Realtime Collaborative Image Editor";
     setTimeout(() => {
       designer.syncData(data.canvas);
     }, 300);
