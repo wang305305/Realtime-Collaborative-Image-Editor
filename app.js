@@ -18,19 +18,11 @@ app.use((req, res, next) => {
 
 const mongo = require('mongodb').MongoClient;
 
-<<<<<<< HEAD
 // const url = 'mongodb://user1:123456a@ds245615.mlab.com:45615/heroku_lbg5q1hr';
 // const dbName = 'heroku_lbg5q1hr';
 
 const url = 'mongodb://localhost:27017';
 const dbName = 'test';
-=======
-const url = 'mongodb://user1:123456a@ds245615.mlab.com:45615/heroku_lbg5q1hr';
-const dbName = 'heroku_lbg5q1hr';
-
-// const url = 'mongodb://localhost:27017';
-// const dbName = 'test';
->>>>>>> cde7f77586781c8cb12b28f054cce8cd19d3ffa4
 
 const room_list = 'room_list';
 const room_points = 'room_points';
@@ -58,10 +50,6 @@ connect(db => {
     if (collections.indexOf(room_points) == -1) {
       console.log(`creating collection '${room_points}'`);
       db.createCollection(room_points);
-<<<<<<< HEAD
-      db.collection(room_points).createIndex({ subject: "text" });
-=======
->>>>>>> cde7f77586781c8cb12b28f054cce8cd19d3ffa4
     }
   });
 });
@@ -122,14 +110,7 @@ const getRoom = (room, callback) => {
       let canvas = { points: [], startIndex: 0 };
       let points = [];
       // create points array for the room.
-<<<<<<< HEAD
-      items.forEach((item, i) => {
-=======
       items.forEach(item => {
-        // remove start and end from points
-        item.canvas.points[0].pop();
-        item.canvas.points[item.canvas.points.length - 1].pop();
->>>>>>> cde7f77586781c8cb12b28f054cce8cd19d3ffa4
         points = points.concat(item.canvas.points);
       });
       if (points.length > 0) {
@@ -140,7 +121,6 @@ const getRoom = (room, callback) => {
       }
       let result = { room: room, canvas: canvas};
       callback(result);
-<<<<<<< HEAD
     });
   });
 };
@@ -184,45 +164,6 @@ io.on('connection', socket => {
       io.to(socket.id).emit('listrooms', room_list);
     });
   });
-=======
-    });
-  });
-};
-
-// adds a new entry to a room.
-const updateRoom = (room, canvas, callback) => {
-  connect(db => {
-    db.collection('room_points').insertOne({ room_id: room, canvas: canvas }, (err, item) => {
-      if (err) return console.error(err);
-      callback(item);
-    });
-  });
-};
-
-// deletes the room and all entries.
-const deleteRoom = (room, callback) => {
-  connect(db => {
-    db.collection(room_list).deleteOne({ room_id: room }, (err, res) => {
-      if (err) return console.error(err);
-      if (res.deletedCount) console.log(`Deleted room '${room}'`);
-      db.collection(room_points).deleteMany({ room_id: room }, (err, res) => {
-        if (err) return console.error(err);
-        console.log(`Deleted ${res.deletedCount} documents from '${room_points}'.`);
-        callback();
-      })
-    });
-  });
-};
-
-// create a new socket for the new connection.
-io.on('connection', socket => {
-  // retrive the rooms from database and send.
-  socket.on('getrooms', data => {
-    getRooms(room_list => {
-      io.to(socket.id).emit('listrooms', room_list);
-    });
-  });
->>>>>>> cde7f77586781c8cb12b28f054cce8cd19d3ffa4
 
   // join the room
   socket.on('joinroom', data => {
@@ -263,15 +204,8 @@ io.on('connection', socket => {
 
   //retrive canvas data from remote user
   socket.on('canvasupdate', data => {
-<<<<<<< HEAD
     // send the update to all users in room.
     io.to(data.room).emit('canvasload', { room: data.room, canvas: data.canvas });
-=======
-
-    // send the update to all users in room.
-    io.to(data.room).emit('canvasload', { room: data.room, canvas: data.canvas });
-
->>>>>>> cde7f77586781c8cb12b28f054cce8cd19d3ffa4
     // add the new canvas to the database.
     updateRoom(data.room, data.canvas, (item) => {
     });

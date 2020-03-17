@@ -24,20 +24,12 @@
   // data passed back from the canvas
   designer.addSyncListener(canvasData => {
     let data = { room: window.location.pathname, canvas: canvasData }
-<<<<<<< HEAD
-    console.log("send", data);
-=======
->>>>>>> cde7f77586781c8cb12b28f054cce8cd19d3ffa4
     socket.emit('canvasupdate', data);
   });
 
   // first join the room.
   socket.on('firstjoin', data => {
-<<<<<<< HEAD
-    console.log("first", data);
-=======
     console.log(data);
->>>>>>> cde7f77586781c8cb12b28f054cce8cd19d3ffa4
     document.querySelector("#room_name").innerHTML = data.room + " Room";
     document.title = data.room + " Room - Realtime Collaborative Image Editor";
     setTimeout(() => {
@@ -52,10 +44,6 @@
 
   // sync data
   socket.on('canvasload', data => {
-<<<<<<< HEAD
-    console.log("recieve", data);
-=======
->>>>>>> cde7f77586781c8cb12b28f054cce8cd19d3ffa4
     designer.syncData(data.canvas);
   });
 
