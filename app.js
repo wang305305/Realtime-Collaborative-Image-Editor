@@ -18,11 +18,11 @@ app.use((req, res, next) => {
 
 const mongo = require('mongodb').MongoClient;
 
-const url = 'mongodb://user1:123456a@ds245615.mlab.com:45615/heroku_lbg5q1hr';
-const dbName = 'heroku_lbg5q1hr';
+// const url = 'mongodb://user1:123456a@ds245615.mlab.com:45615/heroku_lbg5q1hr';
+// const dbName = 'heroku_lbg5q1hr';
 
-// const url = 'mongodb://localhost:27017';
-// const dbName = 'test';
+const url = 'mongodb://localhost:27017';
+const dbName = 'test';
 
 const room_list = 'room_list';
 const room_points = 'room_points';
@@ -50,6 +50,7 @@ connect(db => {
     if (collections.indexOf(room_points) == -1) {
       console.log(`creating collection '${room_points}'`);
       db.createCollection(room_points);
+      db.collection(room_points).createIndex({ subject: "text" });
     }
   });
 });
@@ -110,10 +111,7 @@ const getRoom = (room, callback) => {
       let canvas = { points: [], startIndex: 0 };
       let points = [];
       // create points array for the room.
-      items.forEach(item => {
-        // remove start and end from points
-        item.canvas.points[0].pop();
-        item.canvas.points[item.canvas.points.length - 1].pop();
+      items.forEach((item, i) => {
         points = points.concat(item.canvas.points);
       });
       if (points.length > 0) {
@@ -131,6 +129,12 @@ const getRoom = (room, callback) => {
 // adds a new entry to a room.
 const updateRoom = (room, canvas, callback) => {
   connect(db => {
+    // check if adding image.
+    if (canvas.points[0][0] === "image") {
+      // find and delete the existing image.
+
+      console.log("image");
+    }
     db.collection('room_points').insertOne({ room_id: room, canvas: canvas }, (err, item) => {
       if (err) return console.error(err);
       callback(item);
@@ -201,10 +205,8 @@ io.on('connection', socket => {
 
   //retrive canvas data from remote user
   socket.on('canvasupdate', data => {
-
     // send the update to all users in room.
     io.to(data.room).emit('canvasload', { room: data.room, canvas: data.canvas });
-
     // add the new canvas to the database.
     updateRoom(data.room, data.canvas, (item) => {
     });
