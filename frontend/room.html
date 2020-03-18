@@ -3,6 +3,7 @@
 
 <head>
   <title>Untitled Room</title>
+  <link href="style/room.css" rel="stylesheet" type="text/css" />
 </head>
 
 <body>
@@ -12,14 +13,28 @@
 
   <h1 id="room_name">Untitled Room</h1>
 
-  <div style="height: 500px; width: auto;" id="designer"></div>
+
+  <div id="designer_layers"></div>
 
 
-  <h1>Draw anywhere!</h1>
-  <h2>You will see everyone else who's doing the same.</h2>
+  <h2>Layers</h2>
+  <div id="layers_panel">
+    <div id="layer_panel_list"></div>
+    <div id="layer_panel_buttons">
+      <button id="layer_create">Create</button>
+      <button id="layer_delete">Delete</button>
+      <button id="layer_duplicate">Duplicate</button>
+      <button id="layer_up">Move Up</button>
+      <button id="layer_down">Move Down</button>
+    </div>
+  </div>
+
+
+
 
   <script src="/js/canvas-designer-widget.js"></script>
   <script src="/socket.io/socket.io.js"></script>
+  <script src="/js/designer_api.js"></script>
   <script src="/js/room.js"></script>
 </body>
 

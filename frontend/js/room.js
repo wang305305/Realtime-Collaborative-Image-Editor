@@ -2,24 +2,40 @@
 
   const socket = io('/');
 
-  const designer = new CanvasDesigner();
+
+  const selected_layer = null;
 
   window.addEventListener('load', function () {
 
-    // canvas designer
-    designer.widgetHtmlURL = 'https://cdn.webrtc-experiment.com/Canvas-Designer/widget.html'; 
-    designer.widgetJsURL = 'https://cdn.webrtc-experiment.com/Canvas-Designer/widget.js';
-    // designer.widgetHtmlURL = '/widget.html';
-    // designer.widgetJsURL = '/js/a.js';
-    let designer_container = document.getElementById("designer");
-    designer.appendTo(designer_container);
-    designer.iframe.style.border = '5px solid black';
-    designer.iframe.height = "500";
-    designer.iframe.width = "500";
-
     socket.emit('joinroom', { room: window.location.pathname });
 
+    document.querySelector("#layer_create").addEventListener("click", () => {
+      console.log("create layer above", selected_layer);
+    });
+
+    document.querySelector("#layer_delete").addEventListener("click", () => {
+      console.log("delete layer", selected_layer);
+    });
+    
+    document.querySelector("#layer_duplicate").addEventListener("click", () => {
+      console.log("duplicate layer", selected_layer);
+    });
+    
+    document.querySelector("#layer_up").addEventListener("click", () => {
+      console.log("move layer up", selected_layer);
+    });
+    
+    document.querySelector("#layer_down").addEventListener("click", () => {
+      console.log("move layer down", selected_layer);
+    });
   });
+
+
+  // canvas designer
+  const designer = designer_api.createLayer();
+  const designer2 = designer_api.createLayer();
+  const designer3 = designer_api.createLayer();
+  
 
   // data passed back from the canvas
   designer.addSyncListener(canvasData => {
@@ -29,7 +45,6 @@
 
   // first join the room.
   socket.on('firstjoin', data => {
-    console.log(data);
     document.querySelector("#room_name").innerHTML = data.room + " Room";
     document.title = data.room + " Room - Realtime Collaborative Image Editor";
     setTimeout(() => {

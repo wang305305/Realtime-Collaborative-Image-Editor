@@ -18,11 +18,11 @@ app.use((req, res, next) => {
 
 const mongo = require('mongodb').MongoClient;
 
-const url = 'mongodb://user1:123456a@ds245615.mlab.com:45615/heroku_lbg5q1hr';
-const dbName = 'heroku_lbg5q1hr';
+// const url = 'mongodb://user1:123456a@ds245615.mlab.com:45615/heroku_lbg5q1hr';
+// const dbName = 'heroku_lbg5q1hr';
 
-// const url = 'mongodb://localhost:27017';
-// const dbName = 'test';
+const url = 'mongodb://localhost:27017';
+const dbName = 'test';
 
 const room_list = 'room_list';
 const room_points = 'room_points';

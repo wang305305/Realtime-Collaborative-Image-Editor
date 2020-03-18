@@ -1,0 +1,67 @@
+body {
+  background-color: hotpink;
+}
+
+.canvas_layer {
+  position: absolute;
+  height: 500px; 
+  width: 800px;
+}
+
+.canvas_layer.hidden {
+  visibility: hidden;
+}
+
+.canvas_layer.noEvent {
+  pointer-events: none;
+}
+
+#designer_layers {
+  position: relative;
+  height: 500px; 
+  width: 800px;
+}
+
+#layer_panel_list {
+  border: solid black 1px;
+  width: 500px;
+  margin: 10px 0px;
+  padding: 5px;
+}
+
+.layer_list_row {
+  display: flex;
+  flex-direction: row;
+}
+
+.layer_element {
+  margin: 5px;
+  padding: 5px;
+  border: solid gray 1px;
+  text-align: center;
+  width: 100%;
+}
+
+.layer_element:hover {
+  border: solid black 1px;
+}
+
+.layer_element.selected {
+  border: solid black 2px;
+}
+
+.layer_visibilility {
+  margin: 5px;
+  padding: 5px;
+  border: solid gray 1px;
+  text-align: center;
+  width: 20px;
+}
+
+.layer_visibilility.visible {
+  background-color: #696969;
+}
+
+.layer_visibilility.invisible {
+  background-color: #bdbdbd;
+}
