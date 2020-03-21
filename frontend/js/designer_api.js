@@ -2,30 +2,33 @@ const designer_api = (function () {
 
   let module = {};
 
-  let layers = [];
+  module.layers = [];
 
-  let selected_layer = {canvas_layer: null, layer_list_row: null};
+  module.selected_layer = {canvas_layer: null, layer_list_row: null};
 
   module.createLayer = () => {
+    let new_layer = {};
     // create the new canvase designer.
-    const designer = new CanvasDesigner();
-    designer.widgetHtmlURL = '/widget.html';
-    designer.widgetJsURL = '/js/a.js';
+    new_layer.designer = new CanvasDesigner();
+    new_layer.designer.widgetHtmlURL = '/widget.html';
+    new_layer.designer.widgetJsURL = '/js/a.js';
 
     // add canvas designer to the page.
     let designer_layers = document.querySelector("#designer_layers")
     let canvas_layer = document.createElement("div");
     canvas_layer.classList.add("canvas_layer");
-    canvas_layer.setAttribute("layer_name", `layer_${layers.length}`);
+    canvas_layer.setAttribute("layer_name", `layer_${module.layers.length}`);
+    new_layer.canvas_layer = canvas_layer;
     designer_layers.append(canvas_layer);
 
     // layer to the layer panel list.
     let layer_list_row = document.createElement("div");
     layer_list_row.classList.add("layer_list_row");
     layer_list_row.innerHTML = `
-    <div class="layer_element" layer_name="layer_${layers.length}">layer_${layers.length}</div>
+    <div class="layer_element" layer_name="layer_${module.layers.length}">layer_${module.layers.length}</div>
     <div class="layer_visibilility visible"></div>`
-    layers.push({canvas_layer: canvas_layer, layer_list_row: layer_list_row});
+    new_layer.layer_list_row = layer_list_row;
+    new_layer.layer_name = `layer_${module.layers.length}`;
     document.querySelector("#layer_panel_list").append(layer_list_row);
     
     // add listner to the layer element.
@@ -33,11 +36,11 @@ const designer_api = (function () {
     layer_element.addEventListener("click", () => {
       if (layer_element.classList.contains("selected")) {
         layer_element.classList.remove("selected");
-        selected_layer = null;
+        module.selected_layer = null;
       }
       else {
         layer_element.classList.add("selected");
-        selected_layer = {canvas_layer: canvas_layer, layer_list_row: layer_list_row};
+        module.selected_layer = {canvas_layer: canvas_layer, layer_list_row: layer_list_row};
         disableOthers()
       }
     });
@@ -55,20 +58,20 @@ const designer_api = (function () {
       }
     });
 
-    designer.appendTo(canvas_layer);
+    new_layer.designer.appendTo(canvas_layer);
     refreshLayerZ();
-    return designer;
+    module.layers.push(new_layer);
+    return new_layer;
   };
 
   const refreshLayerZ = () => {
-    layers.forEach((layer, i) => {
-      layer.canvas_layer.children[0].style.zIndex = layers.length - i - 1;
+    module.layers.forEach((layer, i) => {
+      layer.canvas_layer.children[0].style.zIndex = module.layers.length - i - 1;
     });
   };
 
   const disableOthers = () => {
-    layers.forEach(layer => {
-      console.log(layer.layer_list_row, selected_layer.layer_list_row);
+    module.layers.forEach(layer => {
       if (layer.layer_list_row !== selected_layer.layer_list_row) {
         layer.canvas_layer.classList.add("noEvent");
         layer.canvas_layer.onkeydown = () => {};

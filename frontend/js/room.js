@@ -2,12 +2,11 @@
 
   const socket = io('/');
 
-
   const selected_layer = null;
 
   window.addEventListener('load', function () {
 
-    socket.emit('joinroom', { room: window.location.pathname });
+    socket.emit('joinroom', { room_id: window.location.pathname.split("/")[2] });
 
     document.querySelector("#layer_create").addEventListener("click", () => {
       console.log("create layer above", selected_layer);
@@ -16,39 +15,40 @@
     document.querySelector("#layer_delete").addEventListener("click", () => {
       console.log("delete layer", selected_layer);
     });
-    
+
     document.querySelector("#layer_duplicate").addEventListener("click", () => {
       console.log("duplicate layer", selected_layer);
     });
-    
+
     document.querySelector("#layer_up").addEventListener("click", () => {
       console.log("move layer up", selected_layer);
     });
-    
+
     document.querySelector("#layer_down").addEventListener("click", () => {
       console.log("move layer down", selected_layer);
     });
   });
 
 
-  // canvas designer
-  const designer = designer_api.createLayer();
-  const designer2 = designer_api.createLayer();
-  const designer3 = designer_api.createLayer();
-  
-
-  // data passed back from the canvas
-  designer.addSyncListener(canvasData => {
-    let data = { room: window.location.pathname, canvas: canvasData }
-    socket.emit('canvasupdate', data);
-  });
-
   // first join the room.
   socket.on('firstjoin', data => {
-    document.querySelector("#room_name").innerHTML = data.room + " Room";
-    document.title = data.room + " Room - Realtime Collaborative Image Editor";
+    console.log('firstjoin', data);
+    document.querySelector("#room_name").innerHTML = data.room_name + " Room";
+    document.title = data.room_name + " Room - Realtime Collaborative Image Editor";
     setTimeout(() => {
-      designer.syncData(data.canvas);
+      data.layers.forEach(layer => {
+        // create layer and sync the data.
+        const canvas_layer = designer_api.createLayer();
+        console.log(layer);
+        canvas_layer.designer.syncData(layer.canvas);
+
+        // data passed back from the canvas
+        canvas_layer.designer.addSyncListener(canvasData => {
+          console.log(canvas_layer, canvasData);
+          let syncData = { room_id: window.location.pathname.split("/")[2], layer_name: layer.layer_name, canvas: canvasData };
+          socket.emit('canvasupdate', syncData);
+        });
+      });
     }, 300);
   });
 
@@ -57,9 +57,14 @@
     window.location.href = data.destination;
   });
 
+  socket.on('layersload', data => {
+    console.log('layersload', data);
+  });
+
   // sync data
   socket.on('canvasload', data => {
-    designer.syncData(data.canvas);
+    console.log('canvasload', data);
+    designer_api.layers.find(layer => layer.layer_name === data.layer_name).designer.syncData(data.canvas);
   });
 
 }());
