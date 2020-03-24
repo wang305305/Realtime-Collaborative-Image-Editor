@@ -100,12 +100,9 @@ const findRoom = (room_id, callback) => {
 // creates a new room.
 const createRoom = (room_name, callback) => {
   connect(db => {
-    db.collection(room_list).insertOne({ room_id: room_name, room_name: room_name }, (err, item) => {
+    db.collection(room_list).insertOne({ room_id: room_name, room_name: room_name }, (err, room_item) => {
       if (err) return console.error(err);
-      db.collection(room_layers).insertOne({ room_id: room_name, layer_name: "layer_0", z_index: 0 }, (err, item) => {
-        if (err) return console.error(err);
-        callback(item);
-      });
+      callback({ room: room_item.ops[0] });
     });
   });
 };
@@ -126,28 +123,71 @@ const getRoom = (room_id, callback) => {
     db.collection(room_layers).aggregate([{ $match: { room_id: room_id } }, { $lookup: { from: room_points, localField: "layer_name", foreignField: "layer_name", as: "entries" } }]).toArray((err, items) => {
       let result = { room_id: room_id, layers: [] }
       items.forEach(layer => {
-        let points = [];
-        layer.entries.forEach(item => {
-          points = points.concat(item.canvas.points);
+        result.layers.push({
+          layer_name: layer.layer_name,
+          canvases: layer.entries.map(entry => entry.canvas),
+          z_index: layer.z_index
         });
-        if (points.length > 0) {
-          points[0].push("start");
-          points[points.length - 1].push("end");
-        }
-        let layer_result = { layer_name: layer.layer_name, canvas: { points: points, startIndex: 0 }, z_index: layer.z_index };
-        result.layers.push(layer_result);
       });
       callback(result)
     });
   });
 };
 
-// updates the layer entries of a room and reorder all layers.
-const updateLayer = (room_id, layer_name, new_name, new_z_index, callback) => {
+// creates a new layer.
+const createLayer = (room_id, new_layer_name, callback) => {
   connect(db => {
-    db.collection(room_layers).find({ room_id: room }, (err, items) => {
+    db.collection(room_layers).find({}).project({ z_index: 1 }).sort({ z_index: -1 }).limit(1).toArray((err, item) => {
       if (err) return console.error(err);
+      let new_z_index = item[0] ? item[0].z_index + 1 : 0;
+      db.collection(room_layers).insertOne({ room_id: room_id, layer_name: new_layer_name, z_index: new_z_index }, (err, item) => {
+        callback(item.ops[0]);
+      });
+    });
+  });
+}
 
+// deletes the layer.
+const deleteLayer = (room_id, layer_name, callback) => {
+  connect(db => {
+    db.collection(room_layers).deleteOne({ room_id: room_id, layer_name: layer_name }, (err, res) => {
+      if (err) return console.error(err);
+      if (res.deletedCount) console.log(`Deleted ${res.deletedCount} documents from '${room_layers}'.`);
+    });
+    db.collection(room_points).deleteMany({ room_id: room_id, layer_name: layer_name }, (err, res) => {
+      if (err) return console.error(err);
+      if (res.deletedCount) console.log(`Deleted ${res.deletedCount} documents from '${room_points} in layer ${layer_name}'.`);
+    })
+    callback();
+  });
+};
+
+// duplicates the layer.
+const duplicateLayer = (room_id, layer_name, new_layer_name, callback) => {
+  connect(db => {
+    db.collection(room_layers).find({}).project({ z_index: 1 }).sort({ z_index: -1 }).limit(1).toArray((err, item) => {
+      if (err) return console.error(err);
+      db.collection(room_points).find({ room_id: room_id, layer_name: layer_name }).project({ _id: 0 }).toArray((err, point_items) => {
+        if (err) return console.error(err);
+        db.collection(room_layers).insertOne({ room_id: room_id, layer_name: new_layer_name, z_index: item[0].z_index + 1 }, (err, new_layer_item) => {
+          if (err) return console.error(err);
+          let result = { room_id: room_id, layer_name: new_layer_name, canvases: [], z_index: item[0].z_index + 1 }
+          if (point_items.length == 0) return callback(result);
+          point_items = point_items.map(item => {
+            console.log(item);
+            return { room_id: room_id, layer_name: new_layer_name, canvas: item.canvas };
+          });
+          console.log(point_items);
+          db.collection(room_points).insertMany(point_items, (err, new_point_items) => {
+            if (err) return console.error(err);
+            new_point_items.ops.forEach(item => {
+              result.canvases.push(item.canvas);
+            });
+            console.log(result);
+            callback(result);
+          });
+        })
+      });
     });
   });
 };
@@ -164,8 +204,8 @@ const updateRoom = (room_id, canvas, layer_name, callback) => {
 
     // remove the "start" and "end" from the points.
     if (canvas.points) {
-      if (canvas.points[0][canvas.points[0].length-1] == "start") canvas.points[0].pop();
-      if (canvas.points[canvas.points.length-1][canvas.points[canvas.points.length-1].length-1] == "end") canvas.points[canvas.points.length-1].pop();
+      if (canvas.points[0][canvas.points[0].length - 1] == "start") canvas.points[0].pop();
+      if (canvas.points[canvas.points.length - 1][canvas.points[canvas.points.length - 1].length - 1] == "end") canvas.points[canvas.points.length - 1].pop();
     }
     db.collection('room_points').insertOne({ room_id: room_id, layer_name: layer_name, canvas: canvas }, (err, item) => {
       if (err) return console.error(err);
@@ -209,7 +249,6 @@ io.on('connection', socket => {
     findRoom(data.room_id, (room) => {
       if (room) {
         getRoom(data.room_id, (item) => {
-          console.log(item);
           return io.to(socket.id).emit("firstjoin", { room_id: item.room_id, layers: item.layers, room_name: room.room_name });
         });
       }
@@ -257,8 +296,52 @@ io.on('connection', socket => {
 
   });
 
+  // create a new layer with name.
+  socket.on('createlayer', data => {
+    findLayer(data.room_id, data.new_layer_name, (item) => {
+      if (item) return io.to(socket.id).emit('error', `The layer of name "${data.new_layer_name}" already exists.`);
+      createLayer(data.room_id, data.new_layer_name, (item) => {
+        delete item._id;
+        item["mode"] = "create";
+        io.to(data.room_id).emit('layerload', item);
+      });
+    })
+  });
+
+  socket.on('deletelayer', data => {
+    console.log('deletelayer', data);
+    findLayer(data.room_id, data.layer_name, (item) => {
+      if (!item) return io.to(socket.id).emit('error', `The layer of name "${data.layer_name}" does not exist.`);
+      deleteLayer(data.room_id, data.layer_name, () => {
+        io.to(data.room_id).emit('layerload', { room_id: data.room_id, layer_name: data.layer_name, mode: "delete" });
+      });
+    });
+  });
+
+  socket.on('duplicatelayer', data => {
+    console.log('duplicatelayer', data);
+    findLayer(data.room_id, data.layer_name, (item) => {
+      if (!item) return io.to(socket.id).emit('error', `The layer of name "${data.layer_name}" does not exist.`);
+      duplicateLayer(data.room_id, data.layer_name, data.new_layer_name, (item) => {
+        item["mode"] = "duplicate";
+        io.to(data.room_id).emit('layerload', item);
+      });
+    });
+  });
+
+  socket.on('movelayer', data => {
+    console.log('moveuplayer', data);
+    findLayer(data.room_id, data.layer_name, (item) => {
+      if (!item) return io.to(socket.id).emit('error', `The layer of name "${data.layer_name}" does not exist.`);
+      moveLayer(data.room_id, data.layer_name, "up", (item) => {
+        item["mode"] = "move";
+        io.to(data.room_id).emit('layerload', item);
+      });
+    });
+  });
+
   socket.on('disconnect', () => {
-    console.log('user disconnected from', socket.rooms);
+    // console.log('user disconnected from', socket.id);
   });
 });
 
