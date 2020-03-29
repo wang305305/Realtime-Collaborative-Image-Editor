@@ -2,8 +2,6 @@
 
   const socket = io('/');
 
-  const selected_layer = null;
-
   const room_id = window.location.pathname.split("/")[2];
 
   window.addEventListener('load', function () {
@@ -28,25 +26,34 @@
 
     document.querySelector("#layer_up").addEventListener("click", () => {
       let layer_name = room_api.selected_layer.canvas_layer.getAttribute("layer_name");
-      if (layer_name) socket.emit('moveuplayer', { room_id: room_id, layer_name: layer_name })
+      let index = room_api.layers.findIndex(layer => layer.layer_name === layer_name);
+      if (index >= room_api.layers.length - 1) {
+        console.error("Cannot move first layer up.");
+        alert("Cannot move first layer up.");
+        return;
+      }
+      if (layer_name) socket.emit('movelayer', { room_id: room_id, layer_name: layer_name, direction: 1 })
     });
 
     document.querySelector("#layer_down").addEventListener("click", () => {
       let layer_name = room_api.selected_layer.canvas_layer.getAttribute("layer_name");
-      if (layer_name) socket.emit('movedownlayer', { room_id: room_id, layer_name: layer_name })
+      let index = room_api.layers.findIndex(layer => layer.layer_name === layer_name);
+      if (index <= 0) {
+        console.error("Cannot move last layer down.");
+        alert("Cannot move last layer down.");
+        return;
+      }
+      if (layer_name) socket.emit('movelayer', { room_id: room_id, layer_name: layer_name, direction: -1 })
     });
   });
 
   // first join the room.
   socket.on('firstjoin', data => {
-    // console.log('firstjoin', data);
     document.querySelector("#room_name").innerHTML = data.room_name + " Room";
     document.title = data.room_name + " Room - Realtime Collaborative Image Editor";
-    
     data.layers.forEach((layer, i) => {
-      console.log(layer.layer_name, layer.canvases.length);
       // create layer and sync the data.
-      const new_layer = room_api.createLayer(layer.layer_name, layer.z_index, data.layers.length == i + 1 ? true : false);
+      const new_layer = room_api.createLayer(layer.layer_name, layer.z_index, i == 0, true);
       // sync the points to the canvas layer.
       setTimeout(() => {
         layer.canvases.forEach(canvas => {
@@ -71,16 +78,27 @@
 
   // sync layers
   socket.on('layerload', data => {
-    console.log('layerload', data);
+    // console.log('layerload', data);
     if (data.mode === "create") {
+      // create a new layer.
       const new_layer = room_api.createLayer(data.layer_name, data.z_index);
+      // add the listener to the layer.
       new_layer.designer.addSyncListener(canvasData => {
         if (new_layer.canvas_layer.getAttribute("layer_name") === room_api.selected_layer.canvas_layer.getAttribute("layer_name")) {
           let syncData = { room_id: room_id, layer_name: data.layer_name, canvas: canvasData };          
           socket.emit('canvasupdate', syncData);
         }
       });
+      // select the new layer if it is the only one.
+      if (room_api.layers.length == 1) {
+        room_api.selectLayer(data.layer_name);
+      }
     }
+
+    else if (data.mode === "delete") {
+      room_api.deleteLayer(data.layer_name, data.layers);
+    }
+
     else if (data.mode === "duplicate") {
       const new_layer = room_api.createLayer(data.layer_name, data.z_index);
       // sync the points to the canvas layer.
@@ -90,28 +108,22 @@
         });
       }, 500);
       new_layer.designer.addSyncListener(canvasData => {
-        if (new_layer.canvas_layer.getAttribute("layer_name") === room_api.selected_layer.canvas_layer.getAttribute("layer_name")) {
+        if (new_layer.layer_name === room_api.selected_layer.layer_name) {
           let syncData = { room_id: room_id, layer_name: data.layer_name, canvas: canvasData };          
           socket.emit('canvasupdate', syncData);
         }
       });
+    }
 
-    }
-    else if (data.mode === "update") {
-      
-    }
-    else if (data.mode === "delete") {
-   
-    }
-    else if (data.mode === "replace") {
-
+    else if (data.mode === "move") {
+      room_api.moveLayer(data.layer_name, data.direction, data.layers);
     }
   });
 
   // sync data
   socket.on('canvasload', data => {
     // console.log('canvasload', data);
-    room_api.layers.find(layer => layer.canvas_layer.getAttribute("layer_name") === data.layer_name).designer.syncData(data.canvas);
+    room_api.layers.find(layer => layer.layer_name === data.layer_name).designer.syncData(data.canvas);
   });
 
   socket.on('error', data => {
