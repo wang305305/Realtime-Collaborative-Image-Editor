@@ -64,7 +64,7 @@
       // data passed back from the canvas
       new_layer.designer.addSyncListener(canvasData => {
         if (new_layer.canvas_layer.getAttribute("layer_name") === room_api.selected_layer.canvas_layer.getAttribute("layer_name")) {
-          let syncData = { room_id: room_id, layer_name: layer.layer_name, canvas: canvasData };          
+          let syncData = { room_id: room_id, layer_name: layer.layer_name, canvas: canvasData };
           socket.emit('canvasupdate', syncData);
         }
       });
@@ -85,7 +85,7 @@
       // add the listener to the layer.
       new_layer.designer.addSyncListener(canvasData => {
         if (new_layer.canvas_layer.getAttribute("layer_name") === room_api.selected_layer.canvas_layer.getAttribute("layer_name")) {
-          let syncData = { room_id: room_id, layer_name: data.layer_name, canvas: canvasData };          
+          let syncData = { room_id: room_id, layer_name: data.layer_name, canvas: canvasData };
           socket.emit('canvasupdate', syncData);
         }
       });
@@ -109,7 +109,7 @@
       }, 500);
       new_layer.designer.addSyncListener(canvasData => {
         if (new_layer.layer_name === room_api.selected_layer.layer_name) {
-          let syncData = { room_id: room_id, layer_name: data.layer_name, canvas: canvasData };          
+          let syncData = { room_id: room_id, layer_name: data.layer_name, canvas: canvasData };
           socket.emit('canvasupdate', syncData);
         }
       });
@@ -131,17 +131,17 @@
     alert(data);
   });
 
-  String.prototype.hashCode = function() {
+  String.prototype.hashCode = function () {
     var hash = 0;
     if (this.length == 0) {
-        return hash;
+      return hash;
     }
     for (var i = 0; i < this.length; i++) {
-        var char = this.charCodeAt(i);
-        hash = ((hash<<5)-hash)+char;
-        hash = hash & hash; // Convert to 32bit integer
+      var char = this.charCodeAt(i);
+      hash = ((hash << 5) - hash) + char;
+      hash = hash & hash; // Convert to 32bit integer
     }
     return hash;
-}
+  }
 
 }());
