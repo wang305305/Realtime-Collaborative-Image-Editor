@@ -63,3 +63,26 @@ body {
 .layer_visibilility.invisible {
   background-color: #bdbdbd;
 }
+
+.native-hidden {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+}
+
+input[type="checkbox"] {
+  content: url('../uploads/vis.png');
+  display: block;
+  width: 45px;
+  height: 25px;
+  margin: 5px;
+  margin-top: 7px;
+}
+input[type="checkbox"]:checked {
+  content: url('../uploads/invis.png');
+  display: block;
+  width: 45px;
+  height: 30px;
+  margin: 5px;
+  margin-top: 7px;
+}

@@ -48,12 +48,13 @@ const room_api = (function () {
     const layer_panel_list = document.querySelector("#layer_panel_list")
     const layer_list_row = document.createElement("div");
     layer_list_row.classList.add("layer_list_row");
-    layer_list_row.id=layer_name;
+    /*
+    layer_list_row.id = layer_name;
     layer_list_row.setAttribute("draggable", "true");
-    layer_list_row.setAttribute("ondragstart", "drag(event)");
+    layer_list_row.setAttribute("ondragstart", "drag(event)");*/
     layer_list_row.innerHTML = `
     <div class="layer_element" layer_name="${layer_name}">${layer_name}</div>
-    <div class="layer_visibilility visible"></div>`
+    <input class="native-hidden" type="checkbox" />`
     new_layer.layer_list_row = layer_list_row;
     // check if enough layers in list.
     // console.log( layer_panel_list.children[layer_panel_list.children.length - 1 - z_index]);
@@ -65,17 +66,16 @@ const room_api = (function () {
     layer_list_row.querySelector(".layer_element").addEventListener("click", () => {
       module.selectLayer(layer_name);
     });
-
     // add listner to the layer visibilility button.
-    const layer_visibilility = layer_list_row.querySelector(".layer_visibilility");
-    layer_visibilility.addEventListener("click", () => {
-      if (layer_visibilility.classList.contains("visible")) {
-        layer_visibilility.classList.replace("visible", "invisible");
-        canvas_layer.classList.add("hidden");
+    const vis_toggle = layer_list_row.querySelector(".native-hidden");
+    vis_toggle.addEventListener("click", () => {
+      if (canvas_layer.classList.contains("hidden")) {
+
+        canvas_layer.classList.remove("hidden");
       }
       else {
-        layer_visibilility.classList.replace("invisible", "visible");
-        canvas_layer.classList.remove("hidden");
+
+        canvas_layer.classList.add("hidden");
       }
     });
 
@@ -84,7 +84,12 @@ const room_api = (function () {
     if (selected) module.selectLayer(layer_name);
     return new_layer;
   };
-
+  /*
+  // add listener to the layer element.
+  document.querySelector("#layer_panel_list").addEventListener("click", function (data) {
+    console.log("select " + data.detail.layer_name + " event received");
+    module.selectLayer(data.detail.layer_name);
+  });*/
   // selects the layer layer_name.
   module.selectLayer = (layer_name) => {
     // don't reselect.
@@ -94,6 +99,7 @@ const room_api = (function () {
       if (element.classList.contains("selected")) element.classList.remove("selected");
     });
     // select element and update variable.
+
     document.querySelector(`.layer_element[layer_name="${layer_name}"]`).classList.add("selected");
     module.selected_layer = module.layers.find(layer => layer.layer_name === layer_name);
     // console.log("select", module.selected_layer);
@@ -110,7 +116,7 @@ const room_api = (function () {
     // update the z index.
     module.layers.forEach(layer => {
       new_layers.forEach(layer_new => {
-        if (layer_new.layer_name === layer.layer_name ){ 
+        if (layer_new.layer_name === layer.layer_name) {
           layer.canvas_layer.setAttribute("z-index", layer_new.z_index);
         }
       });
@@ -128,16 +134,16 @@ const room_api = (function () {
     // swap the list elments.
     if (index < other_index) module.layers[index].layer_list_row.parentNode.insertBefore(module.layers[index].layer_list_row, module.layers[other_index].layer_list_row);
     else if (index > other_index) module.layers[index].layer_list_row.parentNode.insertBefore(module.layers[other_index].layer_list_row, module.layers[index].layer_list_row);
-    
+
     // swap the layers list elements.
     let temp = module.layers[index];
     module.layers[index] = module.layers[other_index];
     module.layers[other_index] = temp;
-    
+
     // update the z index.
     module.layers.forEach(layer => {
       new_layers.forEach(layer_new => {
-        if (layer_new.layer_name === layer.layer_name ){ 
+        if (layer_new.layer_name === layer.layer_name) {
           layer.canvas_layer.setAttribute("z-index", layer_new.z_index);
         }
       });

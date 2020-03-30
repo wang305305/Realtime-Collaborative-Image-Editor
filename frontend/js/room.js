@@ -6,6 +6,10 @@
 
   window.addEventListener('load', function () {
 
+    Sortable.create(layer_panel_list, {
+      animation: 150,
+    });
+
     socket.emit('joinroom', { room_id: room_id });
 
     document.querySelector("#layer_create").addEventListener("click", () => {
@@ -14,17 +18,30 @@
     });
 
     document.querySelector("#layer_delete").addEventListener("click", () => {
+      //console.log(Object.keys(room_api.selected_layer).length);
+      if (Object.keys(room_api.selected_layer).length == 0) {
+        console.log("No selected layer to delete");
+        return;
+      };
       let layer_name = room_api.selected_layer.canvas_layer.getAttribute("layer_name");
       if (layer_name) socket.emit('deletelayer', { room_id: room_id, layer_name: layer_name })
     });
 
     document.querySelector("#layer_duplicate").addEventListener("click", () => {
+      if (Object.keys(room_api.selected_layer).length == 0) {
+        console.log("No selected layer to duplicate");
+        return;
+      };
       let new_layer_name = prompt("New Layer Name");
       let layer_name = room_api.selected_layer.canvas_layer.getAttribute("layer_name");
       if (new_layer_name) socket.emit('duplicatelayer', { room_id: room_id, layer_name: layer_name, new_layer_name: new_layer_name })
     });
 
     document.querySelector("#layer_up").addEventListener("click", () => {
+      if (Object.keys(room_api.selected_layer).length == 0) {
+        console.log("No selected layer to move up");
+        return;
+      };
       let layer_name = room_api.selected_layer.canvas_layer.getAttribute("layer_name");
       let index = room_api.layers.findIndex(layer => layer.layer_name === layer_name);
       if (index >= room_api.layers.length - 1) {
@@ -36,6 +53,10 @@
     });
 
     document.querySelector("#layer_down").addEventListener("click", () => {
+      if (Object.keys(room_api.selected_layer).length == 0) {
+        console.log("No selected layer to move down");
+        return;
+      };
       let layer_name = room_api.selected_layer.canvas_layer.getAttribute("layer_name");
       let index = room_api.layers.findIndex(layer => layer.layer_name === layer_name);
       if (index <= 0) {
@@ -64,7 +85,7 @@
       // data passed back from the canvas
       new_layer.designer.addSyncListener(canvasData => {
         if (new_layer.canvas_layer.getAttribute("layer_name") === room_api.selected_layer.canvas_layer.getAttribute("layer_name")) {
-          let syncData = { room_id: room_id, layer_name: layer.layer_name, canvas: canvasData };          
+          let syncData = { room_id: room_id, layer_name: layer.layer_name, canvas: canvasData };
           socket.emit('canvasupdate', syncData);
         }
       });
@@ -85,7 +106,7 @@
       // add the listener to the layer.
       new_layer.designer.addSyncListener(canvasData => {
         if (new_layer.canvas_layer.getAttribute("layer_name") === room_api.selected_layer.canvas_layer.getAttribute("layer_name")) {
-          let syncData = { room_id: room_id, layer_name: data.layer_name, canvas: canvasData };          
+          let syncData = { room_id: room_id, layer_name: data.layer_name, canvas: canvasData };
           socket.emit('canvasupdate', syncData);
         }
       });
@@ -109,7 +130,7 @@
       }, 500);
       new_layer.designer.addSyncListener(canvasData => {
         if (new_layer.layer_name === room_api.selected_layer.layer_name) {
-          let syncData = { room_id: room_id, layer_name: data.layer_name, canvas: canvasData };          
+          let syncData = { room_id: room_id, layer_name: data.layer_name, canvas: canvasData };
           socket.emit('canvasupdate', syncData);
         }
       });
@@ -131,17 +152,17 @@
     alert(data);
   });
 
-  String.prototype.hashCode = function() {
+  String.prototype.hashCode = function () {
     var hash = 0;
     if (this.length == 0) {
-        return hash;
+      return hash;
     }
     for (var i = 0; i < this.length; i++) {
-        var char = this.charCodeAt(i);
-        hash = ((hash<<5)-hash)+char;
-        hash = hash & hash; // Convert to 32bit integer
+      var char = this.charCodeAt(i);
+      hash = ((hash << 5) - hash) + char;
+      hash = hash & hash; // Convert to 32bit integer
     }
     return hash;
-}
+  }
 
 }());
