@@ -36,7 +36,7 @@
       let layer_name = room_api.selected_layer.canvas_layer.getAttribute("layer_name");
       if (new_layer_name) socket.emit('duplicatelayer', { room_id: room_id, layer_name: layer_name, new_layer_name: new_layer_name })
     });
-
+/*
     document.querySelector("#layer_up").addEventListener("click", () => {
       if (Object.keys(room_api.selected_layer).length == 0) {
         console.log("No selected layer to move up");
@@ -65,7 +65,7 @@
         return;
       }
       if (layer_name) socket.emit('movelayer', { room_id: room_id, layer_name: layer_name, direction: -1 })
-    });
+    });*/
   });
 
   // first join the room.

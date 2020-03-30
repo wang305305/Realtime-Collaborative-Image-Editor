@@ -2,6 +2,7 @@
 
   const socket = io('/');
   socket.emit('getrooms');
+  console.log("index js")
 
   // create a new room.
   document.querySelector("#new_room_form").addEventListener("submit", e => {
@@ -9,7 +10,17 @@
     let room_name = document.querySelector("#room_name_input").value;
     document.querySelector("#error_text").innerHTML = "";
     document.querySelector("#error_text").style.visibility = "hidden";
-    socket.emit("newroom", { room_name: room_name });
+    socket.emit("newroom", { room_name: room_name});
+  });
+
+  // create a new private room.
+  document.querySelector("#private_room_form").addEventListener("submit", e => {
+    e.preventDefault();
+    let room_name = document.querySelector("#private_room_name_input").value;
+    let password = document.querySelector("#private_room_password").value;
+    document.querySelector("#error_text").innerHTML = "";
+    document.querySelector("#error_text").style.visibility = "hidden";
+    socket.emit("newroom", { room_name: room_name, password: password});
   });
 
   // error.

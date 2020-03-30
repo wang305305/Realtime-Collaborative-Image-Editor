@@ -5,13 +5,35 @@ const http = require('http').createServer(app);
 const io = require('socket.io')(http);
 
 
+
 const bodyParser = require('body-parser');
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 
+const bcrypt = require('bcrypt');
+const session = require('express-session')
+const sharedsession = require("express-socket.io-session");
+const ObjectID = require('mongodb').ObjectID;
+
+let sessionMiddleware = session({
+  secret: 'winston leo wayne',
+  resave: true,
+  saveUninitialized: true,
+});
+
+app.use(sessionMiddleware);
+
+io.use(sharedsession(sessionMiddleware), {
+  autoSave: true
+});
+
 app.use(express.static('frontend'));
 
 app.use((req, res, next) => {
+  //use this array to store rooms that are authorized to current client
+  if (req.session.authorized_rooms == undefined) {
+    req.session.authorized_rooms = [];
+  }
   console.log("HTTP request", req.method, req.url, req.body);
   next();
 });
@@ -63,9 +85,14 @@ connect(db => {
 app.get("/room/:room_id", (req, res, next) => {
   let room_id = req.params.room_id;
   connect(db => {
-    db.collection(room_list).findOne({ room_id: room_id }, (err, item) => {
+    db.collection(room_list).findOne({ _id: ObjectID(room_id) }, (err, item) => {
       if (err) return console.error(err);
-      if (item) return res.sendFile(__dirname + '/frontend/room.html');
+      if (item && !item.private)
+        return res.sendFile(__dirname + '/frontend/room.html');
+      else if (item && item.private && req.session.authorized_rooms.includes(room_id))
+        return res.sendFile(__dirname + '/frontend/room.html');
+      else if (item && item.private && !req.session.authorized_rooms.includes(room_id))
+        return res.redirect(`/authenticate.html?id=${room_id}`);
       else return res.redirect('/index.html');
     });
   });
@@ -81,30 +108,67 @@ const getRooms = (callback) => {
   connect(db => {
     db.collection(room_list).find({}, { _id: 0, canvas: 0 }).toArray((err, items) => {
       if (err) return console.error(err);
-      let room_list = items.map(item => { return { room_id: item.room_id.toString(), room_name: item.room_name } });
+      let room_list = items.map(item => { return { room_id: item._id.toString(), room_name: item.room_name } });
       callback(room_list);
     });
   });
 }
 
-// check if a room exists.
-const findRoom = (room_id, callback) => {
+// check if a room name exists.
+const findRoomName = (room_name, callback) => {
   connect(db => {
-    db.collection(room_list).findOne({ room_id: room_id }, (err, item) => {
+    db.collection(room_list).findOne({ room_name: room_name }, (err, item) => {
       if (err) return console.error(err);
       callback(item);
     });
   });
 };
 
-// creates a new room.
-const createRoom = (room_name, callback) => {
+
+// check if a room id exists.
+const findRoomId = (room_id, callback) => {
   connect(db => {
-    db.collection(room_list).insertOne({ room_id: room_name, room_name: room_name }, (err, room_item) => {
+    db.collection(room_list).findOne({ _id: ObjectID(room_id) }, (err, item) => {
       if (err) return console.error(err);
-      callback({ room: room_item.ops[0] });
+      callback(item);
     });
   });
+};
+
+//authenticate password
+const is_authenticated = (room_id, password, callback) => {
+  connect(db => {
+    db.collection(room_list).findOne({ _id: ObjectID(room_id) }, (err, item) => {
+      if (err) return console.error(err);
+      bcrypt.compare(password, item.password, function (err, valid) {
+        return callback(valid);
+      });
+    });
+  });
+};
+
+// creates a new room.
+const createRoom = (room_name, password, callback) => {
+  if (password === undefined) {
+    connect(db => {
+      db.collection(room_list).insertOne({ room_name: room_name, private: false }, (err, item) => {
+        if (err) return console.error(err);
+        callback(item.ops[0]);
+      });
+    });
+  }
+  else {
+    bcrypt.genSalt(10, function (err, salt) {
+      bcrypt.hash(password, salt, function (err, hash) {
+        connect(db => {
+          db.collection(room_list).insertOne({ room_name: room_name, password: hash, private: true }, (err, item) => {
+            if (err) return console.error(err);
+            callback(item.ops[0]);
+          });
+        });
+      });
+    });
+  }
 };
 
 // check if a layer for room exists.
@@ -172,16 +236,16 @@ const deleteLayer = (room_id, layer_name, callback) => {
             }
             ops.push(op);
           });
-          db.collection(room_layers).bulkWrite(ops, {"ordered": true, "w": 1}, (err, res) => {
+          db.collection(room_layers).bulkWrite(ops, { "ordered": true, "w": 1 }, (err, res) => {
             if (err) return console.error(err);
             db.collection(room_layers).find({ room_id: room_id }).sort({ z_index: 1 }).toArray((err, items) => {
               if (err) return console.error(err);
-              callback(items); 
+              callback(items);
             });
           });
         }
         else {
-          callback([]); 
+          callback([]);
         }
       });
     });
@@ -194,6 +258,7 @@ const duplicateLayer = (room_id, layer_name, new_layer_name, callback) => {
     db.collection(room_layers).find({}).project({ z_index: 1 }).sort({ z_index: -1 }).limit(1).toArray((err, item) => {
       if (err) return console.error(err);
       db.collection(room_points).find({ room_id: room_id, layer_name: layer_name }).project({ _id: 0 }).toArray((err, point_items) => {
+        console.log("point_items "+point_items)
         if (err) return console.error(err);
         db.collection(room_layers).insertOne({ room_id: room_id, layer_name: new_layer_name, z_index: item[0].z_index + 1 }, (err, new_layer_item) => {
           if (err) return console.error(err);
@@ -238,11 +303,11 @@ const moveLayer = (room_id, layer_name, direction, callback) => {
             }
           }
         ];
-        db.collection(room_layers).bulkWrite(ops, {"ordered": true, "w": 1}, (err, res) => {
+        db.collection(room_layers).bulkWrite(ops, { "ordered": true, "w": 1 }, (err, res) => {
           if (err) return console.error(err);
           db.collection(room_layers).find({ room_id: room_id }).sort({ z_index: 1 }).toArray((err, items) => {
             if (err) return console.error(err);
-            callback(items); 
+            callback(items);
           });
         });
       }
@@ -274,9 +339,8 @@ const updateRoom = (room_id, canvas, layer_name, callback) => {
 
 // deletes the room and all layer and point entries.
 const deleteRoom = (room_id, callback) => {
-  console.log("delete", room_id);
   connect(db => {
-    db.collection(room_list).deleteOne({ room_id: room_id }, (err, res) => {
+    db.collection(room_list).deleteOne({ _id: ObjectID(room_id) }, (err, res) => {
       if (err) return console.error(err);
       if (res.deletedCount) console.log(`Deleted room '${room_id}'`);
     });
@@ -304,23 +368,39 @@ io.on('connection', socket => {
   // join the room
   socket.on('joinroom', data => {
     socket.join(data.room_id);
-    findRoom(data.room_id, (room) => {
+    findRoomId(data.room_id, (room) => {
       if (room) {
         getRoom(data.room_id, (item) => {
-          return io.to(socket.id).emit("firstjoin", { room_id: item.room_id, layers: item.layers, room_name: room.room_name });
+          return io.to(socket.id).emit("firstjoin", { room_id: item._id, layers: item.layers, room_name: room.room_name });
         });
       }
       else return io.to(socket.id).emit('redirect', { destination: '/index.html' });
     });
   });
 
+  // authenticate private rooms
+  socket.on('authenticate', data => {
+    socket.join(data.room_id);
+    is_authenticated(data.room_id, data.password, (result) => {
+      if (result) {
+        socket.handshake.session.authorized_rooms.push(data.room_id);
+        socket.handshake.session.save();
+        return io.to(socket.id).emit('redirect', { destination: `/room/${data.room_id}` });
+      }
+      else {
+        return io.to(socket.id).emit('error', `password incorrect`);
+      }
+    });
+  });
+
   // create a new room
   socket.on('newroom', data => {
-    let newroom = data.room_name;
+    let room_name = data.room_name;
+    let password = data.password;
     // check if room exists
-    findRoom(newroom, (item) => {
-      if (item) return io.emit('error', `Room ${newroom} already exists.`);
-      createRoom(newroom, () => {
+    findRoomName(room_name, (item) => {
+      if (item) return io.emit('error', `Room ${room_name} already exists.`);
+      createRoom(room_name, password, () => {
         getRooms(room_list => {
           io.emit('listrooms', room_list);
         });
@@ -340,18 +420,11 @@ io.on('connection', socket => {
 
   // retrive canvas data from the remote user.
   socket.on('canvasupdate', data => {
-    console.log("update", data.layer_name);
     // send the update to all users in room.
     io.to(data.room_id).emit('canvasload', { room_id: data.room_id, layer_name: data.layer_name, canvas: data.canvas });
     // add the new canvas to the database.
     updateRoom(data.room_id, data.canvas, data.layer_name, (item) => {
     });
-  });
-
-  // retrive the layer data from the remote user.
-  socket.on('layerupdate', data => {
-    console.log(data);
-
   });
 
   // create a new layer with name.
@@ -386,7 +459,6 @@ io.on('connection', socket => {
 
   // swap the layer with it's neighbour in the direction.
   socket.on('movelayer', data => {
-    console.log('movelayer', data);
     findLayer(data.room_id, data.layer_name, (item) => {
       if (!item) return io.to(socket.id).emit('error', `The layer of name "${data.layer_name}" does not exist.`);
       moveLayer(data.room_id, data.layer_name, data.direction, (items) => {
