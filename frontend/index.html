@@ -3,30 +3,66 @@
 
 <head>
   <title>Realtime Collaborative Image Editor</title>
-  <link href="style/main.css" rel="stylesheet" type="text/css" />
 </head>
 
 <body>
-  <header>
-    <a href="/" id="title">Home</a>
-  </header>
+  <div class="container">
 
-  <h1>Realtime Collaborative Image Editor</h1>
-  <form id="new_room_form">
-    Room Name: <input id="room_name_input" type="text">
-    <button type="submit">Create New Room</button>
-  </form>
+    <header class="container">
+      <nav class="navbar navbar-light bg-light col-12">
+        <a href="/" id="title" class="navbar-brand">Home</a>
 
-  <div id="room_list_block" style="visibility: hidden;">
-    <h2>Room List</h2>
-    <div id="room_list"></div>
+        <h1 class="">Realtime Collaborative Image Editor</h1>
+
+      </nav>
+    </header>
+    <br>
+    <div class="container" id="new-room">
+
+      <div class="jumbotron new-room" id="new-room2">
+        <h2 class="display-6">Create new room</h2>
+        <form id="new_room_form">
+          <div class="form-group">
+            <label for="room_name">Room Name:</label>
+            <input type="text" id="room_name_input" class="
+          .col-6 .col-sm-4 form-control">
+          </div>
+          <button class="btn btn-primary" type="submit">Create New Room</button>
+        </form>
+      </div>
+
+      <div class="col-6 jumbotron room-list" id="room_list_block" style="visibility: hidden;">
+
+        <h2 class="display-6">Room List</h2>
+        <ul id="room_list" class="list-group"></ul>
+
+      </div>
+
+    </div>
+
+
+
+    <p class="error" id="error_text" style="visibility: hidden;"></p>
+
+
+    <script src="https://code.jquery.com/jquery-3.4.1.slim.min.js"
+      integrity="sha384-J6qa4849blE2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n"
+      crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"
+      integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo"
+      crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js"
+      integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6"
+      crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css"
+      integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+    <link href="style/main.css" rel="stylesheet" type="text/css" />
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js"
+      integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6"
+      crossorigin="anonymous"></script>
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="js/index.js"></script>
   </div>
-
-  <p class="error" id="error_text" style="visibility: hidden;"></p>
-
-
-  <script src="/socket.io/socket.io.js"></script>
-  <script src="js/index.js"></script>
 </body>
 
 </html>

@@ -1,12 +1,26 @@
 .room-entry {
-  display: flex;
-  flex-direction: row;
+  display:flex;
+  justify-content:space-between;
   margin: 5px;
 }
 
 .room-link {
-  margin-right: 100px;
+
 }
+
+.room-delete {
+
+}
+
+.new-room {
+  height: 17rem;
+  padding: 2rem 2rem 2rem 2rem;
+}
+
+.room-list {
+  padding: 2rem 2rem 2rem 2rem;
+}
+
 
 .delete-icon::after {
   content: "×";

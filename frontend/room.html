@@ -4,38 +4,109 @@
 <head>
   <title>Untitled Room</title>
   <link href="/style/room.css" rel="stylesheet" type="text/css" />
+  <style>
+    #div2 {
+      float: left;
+      width: 200px;
+      height: 200px;
+      margin: 10px;
+      padding: 10px;
+      border: 1px solid black;
+    }
+  </style>
+  <script>
+    function allowDrop(ev) {
+      ev.preventDefault();
+    }
+
+    function drag(ev) {
+      console.log("Started to drag the element");
+      ev.dataTransfer.setData("text", ev.target.id);
+    }
+
+    function drop(ev) {
+      ev.preventDefault();
+      var data = ev.dataTransfer.getData("text");
+      console.log("dropping element: " + data)
+      console.log(ev.target.innerText)
+      console.log("ev.target.id "+ev.target.id)
+      if (ev.target.innerText!="" && ev.target.id=="selected_layer_panel"){
+        temp=document.getElementById(ev.target.innerText)
+        console.log("saved 2")
+        ev.target.removeChild(document.getElementById(ev.target.innerText));
+        console.log("removed 2")
+        document.getElementById("layer_panel_list").appendChild(temp);
+        console.log("added 2")
+        ev.target.appendChild(document.getElementById(data));
+        console.log("added 1")
+      } else {
+        ev.target.appendChild(document.getElementById(data));
+      }
+      
+    }
+  </script>
 </head>
 
 <body>
-  <header>
-    <a href="/" id="title">Home</a>
+
+  <header class="container">
+    <nav class="navbar navbar-light bg-light col-12">
+      <a href="/" id="title" class="navbar-brand">Home</a>
+
+      <h1 class="">Realtime Collaborative Image Editor</h1>
+
+    </nav>
+    <h1 id="room_name" style="min-height: 37px;"></h1>
   </header>
 
-  <h1 id="room_name" style="min-height: 37px;"></h1>
 
 
-  <div id="designer_layers"> </div>
+
+  <div class="container">
+    <div class="row">
+      <div id="designer_layers"> </div>
+      <div class="" style="width:350px">
+        <h2>Layers</h2>
+        <div id="layers_panel" class="row d-flex justify-content-around">
+          <div id="layer_panel_list" style="overflow:hidden; overflow-y:scroll; height:200px" ondrop="drop(event)" ondragover="allowDrop(event)"></div>
+          <ul class="list-group">
+            <button type="button" class="list-group-item list-group-item-action active"
+              id="layer_create">Create</button>
+            <button type="button" class="list-group-item list-group-item-action" id="layer_delete">Delete</button>
+            <button type="button" class="list-group-item list-group-item-action" id="layer_duplicate">Duplicate</button>
+            <button type="button" class="list-group-item list-group-item-action" id="layer_up">Move Up</button>
+            <button type="button" class="list-group-item list-group-item-action" id="layer_down">Move Down</button>
+          </ul>
+
+        </div>
 
 
-  <h2>Layers</h2>
-  <div id="layers_panel">
-    <div id="layer_panel_list"></div>
-    <div id="layer_panel_buttons">
-      <button id="layer_create">Create</button>
-      <button id="layer_delete">Delete</button>
-      <button id="layer_duplicate">Duplicate</button>
-      <button id="layer_up">Move Up</button>
-      <button id="layer_down">Move Down</button>
+        <div id="selected_layer_panel" style="overflow:hidden; overflow-y:scroll; height:200px; width:200px; border: 1px solid black;" ondrop="drop(event)" ondragover="allowDrop(event)"></div>
+
+      </div>
     </div>
   </div>
-
-
-
+  <script src="https://code.jquery.com/jquery-3.4.1.slim.min.js"
+    integrity="sha384-J6qa4849blE2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n"
+    crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"
+    integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo"
+    crossorigin="anonymous"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js"
+    integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6"
+    crossorigin="anonymous"></script>
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css"
+    integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+  <link href="style/main.css" rel="stylesheet" type="text/css" />
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js"
+    integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6"
+    crossorigin="anonymous"></script>
 
   <script src="/js/canvas-designer-widget.js"></script>
   <script src="/socket.io/socket.io.js"></script>
   <script src="/js/room_api.js"></script>
   <script src="/js/room.js"></script>
+
 </body>
 
 </html>

@@ -27,18 +27,26 @@
     if (rooms.length > 0) {
       room_list_block.style.visibility = "visible";
       rooms.forEach(room => {
-        let div = document.createElement("div");
-        div.className = "room-entry";
-        div.innerHTML = `
-        <a href="/room/${room.room_id}" class="room-link">${room.room_name}</a>
-        <button class="room-delete delete-icon" title="delete this room"></button>`;
-        div.querySelector('.room-delete').addEventListener('click', function(e){
+        let li = document.createElement("li");
+        li.className = "room-entry";
+        li.innerHTML = `
+        <a href="/room/${room.room_id}" class="room-link list-group-item">${room.room_name}</a>
+        <button class="room-delete btn btn-secondary" title="delete this room">Delete</button>`;
+        li.querySelector('.room-delete').addEventListener('click', function(e){
             socket.emit("deleteroom", { room_id: room.room_id });
         }); 
-        room_list.append(div);
+        room_list.append(li);
       });
+      document.getElementById("new-room2").classList.add("col-6")
+      document.getElementById("new-room2").style.marginRight = "5px";
+      document.getElementById("new-room2").style.paddingRight = "27px";
+      document.getElementById("new-room").classList.add("d-flex")
+      document.getElementById("new-room").classList.add("justify-content-between")
     } else {
       room_list_block.style.visibility = "hidden";
+      document.getElementById("new-room2").classList.remove("col-6")
+      document.getElementById("new-room").classList.remove("d-flex")
+      document.getElementById("new-room").classList.remove("justify-content-between")
     }
   });
 

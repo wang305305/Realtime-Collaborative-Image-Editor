@@ -5,7 +5,7 @@ body {
 .canvas_layer {
   position: absolute;
   height: 500px; 
-  width: 800px;
+  width: 700px;
 }
 
 .canvas_layer.hidden {
@@ -19,12 +19,14 @@ body {
 #designer_layers {
   position: relative;
   height: 500px; 
-  width: 800px;
+  /*width: 800px;*/
+  margin-bottom: 20px;
+  width:700px;
 }
 
 #layer_panel_list {
   border: solid black 1px;
-  width: 500px;
+  width: 200px;
   margin: 10px 0px;
   padding: 5px;
 }

@@ -47,6 +47,9 @@ const room_api = (function () {
     // layer to the layer panel list.
     let layer_list_row = document.createElement("div");
     layer_list_row.classList.add("layer_list_row");
+    layer_list_row.id=layer_name;
+    layer_list_row.setAttribute("draggable", "true");
+    layer_list_row.setAttribute("ondragstart", "drag(event)");
     layer_list_row.innerHTML = `
     <div class="layer_element" layer_name="${layer_name}">${layer_name}</div>
     <div class="layer_visibilility visible"></div>`
