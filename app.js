@@ -202,7 +202,7 @@ const getRoom = (room_id, callback) => {
 // creates a new layer.
 const createLayer = (room_id, new_layer_name, callback) => {
   connect(db => {
-    db.collection(room_layers).find({}).project({ z_index: 1 }).sort({ z_index: -1 }).limit(1).toArray((err, item) => {
+    db.collection(room_layers).find({ room_id: room_id }).project({ z_index: 1 }).sort({ z_index: -1 }).limit(1).toArray((err, item) => {
       if (err) return console.error(err);
       let new_z_index = item[0] ? item[0].z_index + 1 : 0;
       db.collection(room_layers).insertOne({ room_id: room_id, layer_name: new_layer_name, z_index: new_z_index }, (err, item) => {
@@ -255,7 +255,7 @@ const deleteLayer = (room_id, layer_name, callback) => {
 // duplicates the layer.
 const duplicateLayer = (room_id, layer_name, new_layer_name, callback) => {
   connect(db => {
-    db.collection(room_layers).find({}).project({ z_index: 1 }).sort({ z_index: -1 }).limit(1).toArray((err, item) => {
+    db.collection(room_layers).find({ room_id: room_id }).project({ z_index: 1 }).sort({ z_index: -1 }).limit(1).toArray((err, item) => {
       if (err) return console.error(err);
       db.collection(room_points).find({ room_id: room_id, layer_name: layer_name }).project({ _id: 0 }).toArray((err, point_items) => {
         if (err) return console.error(err);
@@ -314,8 +314,8 @@ const moveLayer = (room_id, layer_name, direction, callback) => {
   });
 };
 
-// adds a new entry to a room.
-const updateRoom = (room_id, canvas, layer_name, callback) => {
+// adds a new entry to a layer.
+const updateLayer = (room_id, layer_name, canvas, callback) => {
   connect(db => {
     // check if adding image.
     if (canvas.points[0][0] === "image") {
@@ -422,7 +422,7 @@ io.on('connection', socket => {
     // send the update to all users in room.
     io.to(data.room_id).emit('canvasload', { room_id: data.room_id, layer_name: data.layer_name, canvas: data.canvas });
     // add the new canvas to the database.
-    updateRoom(data.room_id, data.canvas, data.layer_name, (item) => {
+    updateLayer(data.room_id, data.layer_name, data.canvas, (item) => {
     });
   });
 
