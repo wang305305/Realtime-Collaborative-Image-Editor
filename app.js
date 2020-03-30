@@ -120,7 +120,8 @@ const findLayer = (room_id, layer, callback) => {
 // gets the entire room.
 const getRoom = (room_id, callback) => {
   connect(db => {
-    db.collection(room_layers).aggregate([{ $match: { room_id: room_id } }, { $lookup: { from: room_points, localField: "layer_name", foreignField: "layer_name", as: "entries" } }]).toArray((err, items) => {
+    db.collection(room_layers).aggregate([{ $match: { room_id: room_id } }, { $lookup: { from: room_points, localField: "layer_name", foreignField: "layer_name", as: "entries" } }]).sort({ "z_index": 1 }).toArray((err, items) => {
+      if (err) return console.error(err);
       let result = { room_id: room_id, layers: [] }
       items.forEach(layer => {
         result.layers.push({
@@ -150,15 +151,40 @@ const createLayer = (room_id, new_layer_name, callback) => {
 // deletes the layer.
 const deleteLayer = (room_id, layer_name, callback) => {
   connect(db => {
-    db.collection(room_layers).deleteOne({ room_id: room_id, layer_name: layer_name }, (err, res) => {
-      if (err) return console.error(err);
-      if (res.deletedCount) console.log(`Deleted ${res.deletedCount} documents from '${room_layers}'.`);
-    });
     db.collection(room_points).deleteMany({ room_id: room_id, layer_name: layer_name }, (err, res) => {
       if (err) return console.error(err);
       if (res.deletedCount) console.log(`Deleted ${res.deletedCount} documents from '${room_points} in layer ${layer_name}'.`);
-    })
-    callback();
+    });
+    db.collection(room_layers).deleteOne({ room_id: room_id, layer_name: layer_name }, (err, res) => {
+      if (err) return console.error(err);
+      if (res.deletedCount) console.log(`Deleted ${res.deletedCount} documents from '${room_layers}'.`);
+      // get the resulting layers z index.
+      db.collection(room_layers).find({ room_id: room_id }).sort({ z_index: 1 }).toArray((err, items) => {
+        // update the z_indexes.
+        let ops = [];
+        if (items.length > 0) {
+          items.forEach((item, i) => {
+            let op = {
+              "updateOne": {
+                "filter": { "_id": item._id },
+                "update": { $set: { "z_index": i } }
+              }
+            }
+            ops.push(op);
+          });
+          db.collection(room_layers).bulkWrite(ops, {"ordered": true, "w": 1}, (err, res) => {
+            if (err) return console.error(err);
+            db.collection(room_layers).find({ room_id: room_id }).sort({ z_index: 1 }).toArray((err, items) => {
+              if (err) return console.error(err);
+              callback(items); 
+            });
+          });
+        }
+        else {
+          callback([]); 
+        }
+      });
+    });
   });
 };
 
@@ -174,20 +200,52 @@ const duplicateLayer = (room_id, layer_name, new_layer_name, callback) => {
           let result = { room_id: room_id, layer_name: new_layer_name, canvases: [], z_index: item[0].z_index + 1 }
           if (point_items.length == 0) return callback(result);
           point_items = point_items.map(item => {
-            console.log(item);
             return { room_id: room_id, layer_name: new_layer_name, canvas: item.canvas };
           });
-          console.log(point_items);
           db.collection(room_points).insertMany(point_items, (err, new_point_items) => {
             if (err) return console.error(err);
             new_point_items.ops.forEach(item => {
               result.canvases.push(item.canvas);
             });
-            console.log(result);
             callback(result);
           });
-        })
+        });
       });
+    });
+  });
+};
+
+// moves the layer.
+const moveLayer = (room_id, layer_name, direction, callback) => {
+  connect(db => {
+    db.collection(room_layers).find({ room_id: room_id }).sort({ z_index: 1 }).toArray((err, items) => {
+      if (err) return console.error(err);
+      let index = items.findIndex(item => item.layer_name === layer_name);
+      if ((direction === 1 && index < items.length - 1) || (direction === -1 && index > 0)) {
+        items[index + direction].z_index = index;
+        items[index].z_index = index + direction;
+        let ops = [
+          {
+            "updateOne": {
+              "filter": { "_id": items[index]._id },
+              "update": { $set: { "z_index": items[index].z_index } }
+            }
+          },
+          {
+            "updateOne": {
+              "filter": { "_id": items[index + direction]._id },
+              "update": { $set: { "z_index": items[index + direction].z_index } }
+            }
+          }
+        ];
+        db.collection(room_layers).bulkWrite(ops, {"ordered": true, "w": 1}, (err, res) => {
+          if (err) return console.error(err);
+          db.collection(room_layers).find({ room_id: room_id }).sort({ z_index: 1 }).toArray((err, items) => {
+            if (err) return console.error(err);
+            callback(items); 
+          });
+        });
+      }
     });
   });
 };
@@ -282,7 +340,7 @@ io.on('connection', socket => {
 
   // retrive canvas data from the remote user.
   socket.on('canvasupdate', data => {
-    console.log(data);
+    console.log("update", data.layer_name);
     // send the update to all users in room.
     io.to(data.room_id).emit('canvasload', { room_id: data.room_id, layer_name: data.layer_name, canvas: data.canvas });
     // add the new canvas to the database.
@@ -301,47 +359,40 @@ io.on('connection', socket => {
     findLayer(data.room_id, data.new_layer_name, (item) => {
       if (item) return io.to(socket.id).emit('error', `The layer of name "${data.new_layer_name}" already exists.`);
       createLayer(data.room_id, data.new_layer_name, (item) => {
-        delete item._id;
-        item["mode"] = "create";
-        io.to(data.room_id).emit('layerload', item);
+        io.to(data.room_id).emit('layerload', { room_id: item.room_id, layer_name: item.layer_name, z_index: item.z_index, mode: "create" });
       });
     })
   });
 
+  // delete the layer with name and update z-index.
   socket.on('deletelayer', data => {
-    console.log('deletelayer', data);
     findLayer(data.room_id, data.layer_name, (item) => {
       if (!item) return io.to(socket.id).emit('error', `The layer of name "${data.layer_name}" does not exist.`);
-      deleteLayer(data.room_id, data.layer_name, () => {
-        io.to(data.room_id).emit('layerload', { room_id: data.room_id, layer_name: data.layer_name, mode: "delete" });
+      deleteLayer(data.room_id, data.layer_name, (items) => {
+        io.to(data.room_id).emit('layerload', { room_id: data.room_id, layer_name: data.layer_name, mode: "delete", layers: items });
       });
     });
   });
 
+  // create new layer with same contents with new z-index.
   socket.on('duplicatelayer', data => {
-    console.log('duplicatelayer', data);
     findLayer(data.room_id, data.layer_name, (item) => {
       if (!item) return io.to(socket.id).emit('error', `The layer of name "${data.layer_name}" does not exist.`);
       duplicateLayer(data.room_id, data.layer_name, data.new_layer_name, (item) => {
-        item["mode"] = "duplicate";
-        io.to(data.room_id).emit('layerload', item);
+        io.to(data.room_id).emit('layerload', { room_id: item.room_id, layer_name: item.layer_name, z_index: item.z_index, mode: "duplicate", canvases: item.canvases });
       });
     });
   });
 
+  // swap the layer with it's neighbour in the direction.
   socket.on('movelayer', data => {
-    console.log('moveuplayer', data);
+    console.log('movelayer', data);
     findLayer(data.room_id, data.layer_name, (item) => {
       if (!item) return io.to(socket.id).emit('error', `The layer of name "${data.layer_name}" does not exist.`);
-      moveLayer(data.room_id, data.layer_name, "up", (item) => {
-        item["mode"] = "move";
-        io.to(data.room_id).emit('layerload', item);
+      moveLayer(data.room_id, data.layer_name, data.direction, (items) => {
+        io.to(data.room_id).emit('layerload', { room_id: data.room_id, layer_name: data.layer_name, mode: "move", direction: data.direction, layers: items });
       });
     });
-  });
-
-  socket.on('disconnect', () => {
-    // console.log('user disconnected from', socket.id);
   });
 });
 

@@ -12,16 +12,12 @@ body {
   visibility: hidden;
 }
 
-.canvas_layer.noEvent {
-  pointer-events: none;
-}
-
 #designer_layers {
   position: relative;
   height: 500px; 
-  /*width: 800px;*/
   margin-bottom: 20px;
   width:700px;
+  border: solid black 1px;
 }
 
 #layer_panel_list {
