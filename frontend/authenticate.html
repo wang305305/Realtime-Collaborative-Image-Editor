@@ -1,0 +1,27 @@
+<!doctype html>
+<html>
+
+<head>
+  <title>Realtime Collaborative Image Editor</title>
+  <link href="style/main.css" rel="stylesheet" type="text/css" />
+</head>
+
+<body>
+  <header>
+    <a href="/" id="title">Home</a>
+  </header>
+
+  <h1>Realtime Collaborative Image Editor</h1>
+  <form id="password_form">
+    Password: <input id="password_input" type="text">
+    <button type="submit">Enter your password</button>
+  </form>
+
+  <p class="error" id="error_text" style="visibility: hidden;"></p>
+
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="js/authenticate.js"></script>
+</body>
+
+</html>

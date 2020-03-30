@@ -1,7 +1,7 @@
 (function () {
 
   const socket = io('/');
-
+  console.log("room js")
   const selected_layer = null;
 
   window.addEventListener('load', function () {
