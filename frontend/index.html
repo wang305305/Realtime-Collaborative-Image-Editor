@@ -14,14 +14,19 @@
   <h1>Realtime Collaborative Image Editor</h1>
   <form id="new_room_form">
     Room Name: <input id="room_name_input" type="text">
-    <button type="submit">Create New Room</button>
+    <button type="submit">Create New Room</button><br>
+    <label id="password_label" class="hidden">Password:</label>
+    <input type="password" id="password_input" name="password" class="hidden">
+    <input type="checkbox" id="hidden_option" class="hidden" name="make_hidden_room">
+    <label id="hidden_label" class="hidden">hidden room</label>
   </form>
 
-  <form id="private_room_form">
-    Room Name: <input id="private_room_name_input" type="text">
-    Password: <input id="private_room_password" type="text">
-    <button type="submit">Create New Private Room</button>
-  </form>
+  <div>
+    <input type="checkbox" id="private_option" name="make_private_room">
+    <label for="private"> Make a private room</label><br>
+  </div>
+
+  <p id="hidden_room_id" class="hidden"></p>
 
   <div id="room_list_block" style="visibility: hidden;">
     <h2>Room List</h2>
