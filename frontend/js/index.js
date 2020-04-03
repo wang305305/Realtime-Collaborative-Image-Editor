@@ -8,19 +8,28 @@
   document.querySelector("#new_room_form").addEventListener("submit", e => {
     e.preventDefault();
     let room_name = document.querySelector("#room_name_input").value;
+    let password = undefined;
+    let hidden = false;
     document.querySelector("#error_text").innerHTML = "";
     document.querySelector("#error_text").style.visibility = "hidden";
-    socket.emit("newroom", { room_name: room_name});
+    let private_checkbox = document.querySelector("#private_option").checked;
+    hidden = document.querySelector("#hidden_option").checked;
+    if (private_checkbox) password = document.querySelector("#password_input").value;
+    socket.emit("newroom", { room_name: room_name, password: password, hidden:hidden});
   });
 
-  // create a new private room.
-  document.querySelector("#private_room_form").addEventListener("submit", e => {
-    e.preventDefault();
-    let room_name = document.querySelector("#private_room_name_input").value;
-    let password = document.querySelector("#private_room_password").value;
-    document.querySelector("#error_text").innerHTML = "";
-    document.querySelector("#error_text").style.visibility = "hidden";
-    socket.emit("newroom", { room_name: room_name, password: password});
+  document.querySelector("#private_option").addEventListener('change', function() {
+    if(this.checked) {
+      document.querySelector("#password_label").style.visibility = "visible";
+      document.querySelector("#password_input").style.visibility = "visible";
+      document.querySelector("#hidden_option").style.visibility = "visible";
+      document.querySelector("#hidden_label").style.visibility = "visible";
+    } else {
+      document.querySelector("#password_label").style.visibility = "hidden";
+      document.querySelector("#password_input").style.visibility = "hidden";
+      document.querySelector("#hidden_option").style.visibility = "hidden";
+      document.querySelector("#hidden_label").style.visibility = "hidden";
+    }
   });
 
   // error.
@@ -28,6 +37,12 @@
     console.log(error);
     document.querySelector("#error_text").style.visibility = "visible";
     document.querySelector("#error_text").innerHTML = error;
+  });
+
+  socket.on('showID', id => {
+    console.log(id);
+    document.querySelector("#hidden_room_id").style.visibility = "visible";
+    document.querySelector("#hidden_room_id").innerHTML = id;
   });
 
   // display rooms.

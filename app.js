@@ -34,6 +34,7 @@ app.use((req, res, next) => {
   if (req.session.authorized_rooms == undefined) {
     req.session.authorized_rooms = [];
   }
+  console.log("starting use",req.session.authorized_rooms );
   console.log("HTTP request", req.method, req.url, req.body);
   next();
 });
@@ -106,8 +107,9 @@ app.get("/", (req, res, next) => {
 // gets the list of rooms.
 const getRooms = (callback) => {
   connect(db => {
-    db.collection(room_list).find({}, { _id: 0, canvas: 0 }).toArray((err, items) => {
+    db.collection(room_list).find({hidden:false}, { _id: 0, canvas: 0 }).toArray((err, items) => {
       if (err) return console.error(err);
+      console.log("getrooms:", items)
       let room_list = items.map(item => { return { room_id: item._id.toString(), room_name: item.room_name } });
       callback(room_list);
     });
@@ -148,12 +150,12 @@ const is_authenticated = (room_id, password, callback) => {
 };
 
 // creates a new room.
-const createRoom = (room_name, password, callback) => {
+const createRoom = (room_name, password, hid, callback) => {
   if (password === undefined) {
     connect(db => {
-      db.collection(room_list).insertOne({ room_name: room_name, private: false }, (err, item) => {
+      db.collection(room_list).insertOne({ room_name: room_name, private: false, hidden: false }, (err, item) => {
         if (err) return console.error(err);
-        callback(item.ops[0]);
+        callback(item);
       });
     });
   }
@@ -161,7 +163,7 @@ const createRoom = (room_name, password, callback) => {
     bcrypt.genSalt(10, function (err, salt) {
       bcrypt.hash(password, salt, function (err, hash) {
         connect(db => {
-          db.collection(room_list).insertOne({ room_name: room_name, password: hash, private: true }, (err, item) => {
+          db.collection(room_list).insertOne({ room_name: room_name, password: hash, private: true, hidden: hid }, (err, item) => {
             if (err) return console.error(err);
             callback(item.ops[0]);
           });
@@ -358,6 +360,7 @@ const deleteRoom = (room_id, callback) => {
 
 // create a new socket for the new connection.
 io.on('connection', socket => {
+  if (socket.handshake.session.authorized_rooms === undefined) socket.handshake.session.authorized_rooms = [];
   // retrive the rooms from database and send.
   socket.on('getrooms', data => {
     getRooms(room_list => {
@@ -397,10 +400,12 @@ io.on('connection', socket => {
   socket.on('newroom', data => {
     let room_name = data.room_name;
     let password = data.password;
+    let hidden = data.hidden;
     // check if room exists
     findRoomName(room_name, (item) => {
       if (item) return io.emit('error', `Room ${room_name} already exists.`);
-      createRoom(room_name, password, () => {
+      createRoom(room_name, password, hidden, (room) => {
+        if (hidden) io.emit('showID', `your hidden room ID: ${room._id}`);
         getRooms(room_list => {
           io.emit('listrooms', room_list);
         });
@@ -410,10 +415,16 @@ io.on('connection', socket => {
 
   // delete a room
   socket.on('deleteroom', data => {
-    deleteRoom(data.room_id, () => {
-      getRooms(room_list => {
-        io.emit('listrooms', room_list);
-        io.to(data.room_id).emit('redirect', { destination: '/index.html' });
+    findRoomId(data.room_id, (room) => {
+      console.log(socket.handshake.session.authorized_rooms);
+      if (room.private && !socket.handshake.session.authorized_rooms.includes(data.room_id)){
+        return io.to(socket.id).emit('error', "you are not authrorized to modify this room");
+      }
+      deleteRoom(data.room_id, () => {
+        getRooms(room_list => {
+          io.emit('listrooms', room_list);
+          io.to(data.room_id).emit('redirect', { destination: '/index.html' });
+        });
       });
     });
   });
