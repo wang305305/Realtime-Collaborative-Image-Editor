@@ -99,10 +99,9 @@ const room_api = (function () {
       if (element.classList.contains("selected")) element.classList.remove("selected");
     });
     // select element and update variable.
-
     document.querySelector(`.layer_element[layer_name="${layer_name}"]`).classList.add("selected");
     module.selected_layer = module.layers.find(layer => layer.layer_name === layer_name);
-    // console.log("select", module.selected_layer);
+    // console.log("selected layer ", module.selected_layer);
   };
 
   module.deleteLayer = (layer_name, new_layers) => {

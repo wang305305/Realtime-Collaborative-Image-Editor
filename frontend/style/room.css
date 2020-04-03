@@ -8,6 +8,20 @@ body {
   width: 700px;
 }
 
+#room_name{
+  min-height: 37px;
+}
+
+.layers{
+  margin-left:25px; width:350px
+}
+
+.main-content{
+  padding-left: 30px;
+}
+#layer_panel_list{
+  overflow:hidden; overflow-y:scroll; height:200px;
+}
 .canvas_layer.hidden {
   visibility: hidden;
 }
