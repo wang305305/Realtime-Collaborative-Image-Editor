@@ -4,20 +4,34 @@
   socket.emit('getrooms');
   console.log("index js")
 
-  // create a new room.
-  document.querySelector("#new_room_form").addEventListener("submit", e => {
+  // create a new private room.
+  document.querySelector("#createPrivate").addEventListener("click", e => {
+    console.log("create private")
     e.preventDefault();
     let room_name = document.querySelector("#room_name_input").value;
     let password = undefined;
     let hidden = false;
     document.querySelector("#error_text").innerHTML = "";
     document.querySelector("#error_text").style.visibility = "hidden";
-    let private_checkbox = document.querySelector("#private_option").checked;
+    //let private_checkbox = document.querySelector("#private_option").checked;
     hidden = document.querySelector("#hidden_option").checked;
-    if (private_checkbox) password = document.querySelector("#password_input").value;
+    password = document.querySelector("#password_input").value;
+    console.log("will emit "+ { room_name: room_name, password: password, hidden:hidden})
     socket.emit("newroom", { room_name: room_name, password: password, hidden:hidden});
   });
 
+  // create a new public room.
+  document.querySelector("#createPublic").addEventListener("click", e => {
+    console.log("create public")
+    e.preventDefault();
+    let room_name = document.querySelector("#room_name_input").value;
+    let password = undefined;
+    let hidden = false;
+    document.querySelector("#error_text").innerHTML = "";
+    document.querySelector("#error_text").style.visibility = "hidden";
+    socket.emit("newroom", { room_name: room_name, password: password, hidden:hidden});
+  });
+/*
   document.querySelector("#private_option").addEventListener('change', function() {
     if(this.checked) {
       document.querySelector("#password_label").style.visibility = "visible";
@@ -31,10 +45,10 @@
       document.querySelector("#hidden_label").style.visibility = "hidden";
     }
   });
-
+*/
   // error.
   socket.on('error', error => {
-    console.log(error);
+    alert(error);
     document.querySelector("#error_text").style.visibility = "visible";
     document.querySelector("#error_text").innerHTML = error;
   });
