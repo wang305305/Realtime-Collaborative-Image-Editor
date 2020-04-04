@@ -17,15 +17,16 @@
       </nav>
     </header>
     <br>
-    <div class="container" id="new-room">
+    <div class="container d-flex justify-content-between" id="new-room">
 
-      <div class="jumbotron new-room" id="new-room2">
+      <div class="jumbotron new-room col-6" id="new-room2">
 
         <h2 class="display-6">Create new room</h2>
         <form id="new_room_form">
           Room Name: <input class=".col-6 .col-sm-4 form-control" id="room_name_input" type="text">
           <br>
-          <button class="btn btn-primary" type="button" data-toggle="modal" data-target="#createRoomModal">Next</button><br>
+          <button class="btn btn-primary" type="button" data-toggle="modal"
+            data-target="#createRoomModal">Next</button><br>
 
 
 
@@ -35,17 +36,20 @@
             <div class="modal-dialog" role="document">
               <div class="modal-content">
                 <div class="modal-header">
-                  <h5 class="modal-title" id="createRoomModalTitle">Do you want to make your room private or public?</h5>
+                  <h5 class="modal-title" id="createRoomModalTitle">Do you want to make your room private or public?
+                  </h5>
                   <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                   </button>
                 </div>
                 <div class="modal-body">
                   <p>A public room can be seen and acccessed by anyone</p>
-                  <p>A private room can only be accessed with correct password and you can make it hidden from the list of rooms</p> 
+                  <p>A private room can only be accessed with correct password and you can make it hidden from the list
+                    of rooms</p>
                 </div>
                 <div class="modal-footer">
-                  <button class="btn btn-primary" type="button" data-toggle="modal" data-dismiss="modal" data-target="#privateRoomModal">Private</button>
+                  <button class="btn btn-primary" type="button" data-toggle="modal" data-dismiss="modal"
+                    data-target="#privateRoomModal">Private</button>
                   <button class="btn btn-primary" type="submit" data-dismiss="modal" id="createPublic">Public</button>
                   <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
                 </div>
@@ -68,10 +72,10 @@
                   <div>
                     <label for="private">Set an password for your room</label><br>
                   </div>
-                  <label id="password_label" >Password:</label>
+                  <label id="password_label">Password:</label>
                   <input type="password" id="password_input" name="password">
                   <p>Do you want to hide the room from the room list?</p>
-                  <input type="checkbox" id="hidden_option"name="make_hidden_room">
+                  <input type="checkbox" id="hidden_option" name="make_hidden_room">
                   <label id="hidden_label">hidden room</label>
                 </div>
                 <div class="modal-footer">
@@ -89,9 +93,18 @@
 
 
       </div>
-      <div class="col-6 jumbotron room-list" id="room_list_block" style="visibility: hidden;">
+      <div class="col-6 jumbotron room-list" id="room_list_block">
 
-        <h2 class="display-6">Room List</h2>
+        <h2 class="display-6">Rooms</h2>
+        <form id="enter_room_form">
+          <div class="input-group mb-3">
+            <input type="text" class="form-control" placeholder="Room ID" aria-label="RoomID"
+              aria-describedby="button-addon2" id="enter_room_input">
+            <div class="input-group-append">
+              <button class="btn btn-outline-secondary" type="submit" id="button-addon2">Enter</button>
+            </div>
+          </div>
+        </form>
         <ul id="room_list" class="list-group"></ul>
 
       </div>
