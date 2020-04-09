@@ -418,12 +418,13 @@ io.on('connection', socket => {
     findRoomId(data.room_id, (room) => {
       console.log(socket.handshake.session.authorized_rooms);
       if (room.private && !socket.handshake.session.authorized_rooms.includes(data.room_id)){
-        return io.to(socket.id).emit('error', "you are not authrorized to modify this room");
+        return io.to(socket.id).emit('error', "you are not authrorized to delete this room, please enter the room with credentials first");
       }
       deleteRoom(data.room_id, () => {
         getRooms(room_list => {
           io.emit('listrooms', room_list);
           io.to(data.room_id).emit('redirect', { destination: '/index.html' });
+          io.to(socket.id).emit('error',`deleted room ${room.room_name}`);
         });
       });
     });

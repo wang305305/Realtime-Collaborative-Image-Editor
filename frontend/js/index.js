@@ -6,11 +6,19 @@
 
   // enter a room
 
-  document.querySelector("#enter_room_form").addEventListener("submit", e => {
+  document.querySelector("#button-addon2").addEventListener("click", e => {
     e.preventDefault();
     let room_id = document.querySelector("#enter_room_input").value;
     window.location.href="/room/"+room_id;
   });
+
+  //delete a room
+  document.querySelector("#delete-button").addEventListener("click", e => {
+    e.preventDefault();
+    let room_id = document.querySelector("#enter_room_input").value;
+    socket.emit("deleteroom", { room_id: room_id });
+  });
+
   // create a new private room.
   document.querySelector("#createPrivate").addEventListener("click", e => {
     //console.log("create private")
@@ -77,10 +85,9 @@
         let li = document.createElement("li");
         li.className = "room-entry";
         li.innerHTML = `
-        <a href="/room/${room.room_id}" class="room-link list-group-item">${room.room_name}</a>
-        <button class="room-delete btn btn-secondary" title="delete this room">Delete</button>`;
-        li.querySelector('.room-delete').addEventListener('click', function (e) {
-          socket.emit("deleteroom", { room_id: room.room_id });
+        <button class="room-id btn btn-outline-secondary">${room.room_name}</button>`;
+        li.querySelector('.room-id').addEventListener('click', function (e) {
+          document.querySelector("#enter_room_input").value = room.room_id;
         });
         room_list.append(li);
       });
