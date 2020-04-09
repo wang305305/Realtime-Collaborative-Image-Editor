@@ -66,7 +66,23 @@ const room_api = (function () {
     layer_list_row.querySelector(".layer_element").addEventListener("click", () => {
       module.selectLayer(layer_name);
     });
-
+   /*
+    layer_list_row.addEventListener("onEnd", () => {
+      console.log("onEnd received")
+   
+      if (Object.keys(room_api.selected_layer).length == 0) {
+        console.log("No selected layer to move up");
+        return;
+      };
+      let layer_name = room_api.selected_layer.canvas_layer.getAttribute("layer_name");
+      let index = room_api.layers.findIndex(layer => layer.layer_name === layer_name);
+      if (index >= room_api.layers.length - 1) {
+        console.error("Cannot move first layer up.");
+        alert("Cannot move first layer up.");
+        return;
+      }
+      if (layer_name) socket.emit('movelayer', { room_id: room_id, layer_name: layer_name, direction: 1})
+    });*/
 
     // add listner to the layer visibilility button.
     const vis_toggle = layer_list_row.querySelector("#eye");
