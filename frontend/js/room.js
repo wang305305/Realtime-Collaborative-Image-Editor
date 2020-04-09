@@ -5,10 +5,43 @@
   const room_id = window.location.pathname.split("/")[2];
 
   window.addEventListener('load', function () {
-
-    Sortable.create(layer_panel_list, {
+    options = {
       animation: 150,
-    });
+    };
+    events = [
+      'onEnd'
+    ].forEach(function (name) {
+      options[name] = function (evt) {
+        /*
+        console.log({
+          'event': name,
+          'layerName': evt.item.innerText,
+          'oldIndex': evt.oldIndex,
+          'newIndex': evt.newIndex
+        });
+        */
+        let layer_name = evt.item.innerText;
+        let oldIndex = evt.oldIndex;
+        let newIndex = evt.newIndex;
+        let steps = Math.abs(oldIndex - newIndex);
+        console.log(steps)
+        if (oldIndex > newIndex) {
+          for (var i = 0; i < steps; i++) {
+            //console.log('movelayer ', { room_id: room_id, layer_name: layer_name, direction: 1 })
+            socket.emit('movelayer', { room_id: room_id, layer_name: layer_name, direction: 1 })
+          }
+        } else if (oldIndex < newIndex) {
+          for (var i = 0; i < steps; i++) {
+            //console.log('movelayer ', { room_id: room_id, layer_name: layer_name, direction: -1 })
+            socket.emit('movelayer', { room_id: room_id, layer_name: layer_name, direction: -1 })
+          }
+        }
+
+      };
+    })
+      ;
+
+    Sortable.create(layer_panel_list, options);
 
     socket.emit('joinroom', { room_id: room_id });
 
@@ -36,35 +69,52 @@
       if (new_layer_name) socket.emit('duplicatelayer', { room_id: room_id, layer_name: layer_name, new_layer_name: new_layer_name })
     });
     /*
-    document.querySelector("#layer_up").addEventListener("click", () => {
-      if (Object.keys(room_api.selected_layer).length == 0) {
-        console.log("No selected layer to move up");
-        return;
-      };
-      let layer_name = room_api.selected_layer.canvas_layer.getAttribute("layer_name");
-      let index = room_api.layers.findIndex(layer => layer.layer_name === layer_name);
-      if (index >= room_api.layers.length - 1) {
-        console.error("Cannot move first layer up.");
-        alert("Cannot move first layer up.");
-        return;
-      }
-      if (layer_name) socket.emit('movelayer', { room_id: room_id, layer_name: layer_name, direction: 1 })
-    });
-
-    document.querySelector("#layer_down").addEventListener("click", () => {
-      if (Object.keys(room_api.selected_layer).length == 0) {
-        console.log("No selected layer to move down");
-        return;
-      };
-      let layer_name = room_api.selected_layer.canvas_layer.getAttribute("layer_name");
-      let index = room_api.layers.findIndex(layer => layer.layer_name === layer_name);
-      if (index <= 0) {
-        console.error("Cannot move last layer down.");
-        alert("Cannot move last layer down.");
-        return;
-      }
-      if (layer_name) socket.emit('movelayer', { room_id: room_id, layer_name: layer_name, direction: -1 })
-    });*/
+        document.querySelector(".layer_list_row").addEventListener("onEnd", () => {
+          console.log("onEnd received")
+          
+          if (Object.keys(room_api.selected_layer).length == 0) {
+            console.log("No selected layer to move up");
+            return;
+          };
+          let layer_name = room_api.selected_layer.canvas_layer.getAttribute("layer_name");
+          let index = room_api.layers.findIndex(layer => layer.layer_name === layer_name);
+          if (index >= room_api.layers.length - 1) {
+            console.error("Cannot move first layer up.");
+            alert("Cannot move first layer up.");
+            return;
+          }
+          if (layer_name) socket.emit('movelayer', { room_id: room_id, layer_name: layer_name, direction: 1})
+        });
+    /*
+        document.querySelector("#layer_up").addEventListener("click", () => {
+          if (Object.keys(room_api.selected_layer).length == 0) {
+            console.log("No selected layer to move up");
+            return;
+          };
+          let layer_name = room_api.selected_layer.canvas_layer.getAttribute("layer_name");
+          let index = room_api.layers.findIndex(layer => layer.layer_name === layer_name);
+          if (index >= room_api.layers.length - 1) {
+            console.error("Cannot move first layer up.");
+            alert("Cannot move first layer up.");
+            return;
+          }
+          if (layer_name) socket.emit('movelayer', { room_id: room_id, layer_name: layer_name, direction: 1 })
+        });
+    
+        document.querySelector("#layer_down").addEventListener("click", () => {
+          if (Object.keys(room_api.selected_layer).length == 0) {
+            console.log("No selected layer to move down");
+            return;
+          };
+          let layer_name = room_api.selected_layer.canvas_layer.getAttribute("layer_name");
+          let index = room_api.layers.findIndex(layer => layer.layer_name === layer_name);
+          if (index <= 0) {
+            console.error("Cannot move last layer down.");
+            alert("Cannot move last layer down.");
+            return;
+          }
+          if (layer_name) socket.emit('movelayer', { room_id: room_id, layer_name: layer_name, direction: -1 })
+        });*/
   });
 
   // first join the room.
