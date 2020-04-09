@@ -23,7 +23,7 @@
 
         <h2 class="display-6">Create new room</h2>
         <form id="new_room_form">
-          Room Name: <input class=".col-6 .col-sm-4 form-control" id="room_name_input" type="text">
+          Room Name: <input class=".col-6 .col-sm-4 form-control" id="room_name_input" type="text" required maxlength="30">
           <br>
           <button class="btn btn-primary" type="button" data-toggle="modal"
             data-target="#createRoomModal">Next</button><br>
@@ -74,7 +74,7 @@
                   </div>
                   <label id="password_label">Password:</label>
                   <input type="password" id="password_input" name="password">
-                  <p>Do you want to hide the room from the room list?</p>
+                  <div>Do you want to hide the room from the room list?</div>
                   <input type="checkbox" id="hidden_option" name="make_hidden_room">
                   <label id="hidden_label">hidden room</label>
                 </div>

@@ -45,8 +45,8 @@
 
     socket.emit('joinroom', { room_id: room_id });
 
-    document.querySelector("#layer_create").addEventListener("click", () => {
-      let new_layer_name = prompt("New Layer Name");
+    document.querySelector("#create_layer").addEventListener("click", () => {
+      let new_layer_name = document.querySelector("#layer_name_input").value
       if (new_layer_name) socket.emit('createlayer', { room_id: room_id, new_layer_name: new_layer_name })
     });
 

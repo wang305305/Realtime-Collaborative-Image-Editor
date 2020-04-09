@@ -20,7 +20,7 @@ body {
   padding-left: 30px;
 }
 #layer_panel_list{
-  overflow:hidden; overflow-y:auto; height:200px;
+  overflow:hidden; overflow-y:auto; height:445px;
 }
 .canvas_layer.hidden {
   visibility: hidden;
@@ -28,7 +28,7 @@ body {
 
 #designer_layers {
   position: relative;
-  height: 500px; 
+  height: 501px; 
   margin-bottom: 20px;
   width:700px;
   min-width: 700px;
@@ -53,6 +53,8 @@ body {
   border: solid gray 1px;
   text-align: center;
   width: 100%;
+  max-width: 140px;
+  overflow: hidden;
 }
 
 .layer_element:hover {

@@ -15,6 +15,12 @@
 .room-id {
 
 }
+@media (max-width: 1199px) {
+  .nav-width {
+    width: 700px;
+  }
+}
+
 
 .new-room {
   height: 17rem;
