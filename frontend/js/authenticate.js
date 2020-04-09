@@ -1,18 +1,16 @@
 (function () {
 
   const socket = io('/');
-  const temp = window.location.search;
-  const urlParams = new URLSearchParams(temp);
-  const room_id = urlParams.get('id');
-  console.log("hello");
+  const room_id = new URLSearchParams(window.location.search).get('id');
+
   // create a new room.
   document.querySelector("#password_form").addEventListener("submit", e => {
     e.preventDefault();
     let password = document.querySelector("#password_input").value;
-    console.log(password, room_id);
     document.querySelector("#error_text").innerHTML = "";
     document.querySelector("#error_text").style.visibility = "hidden";
-    socket.emit("authenticate", { room_id: room_id, password: password });
+    if (room_id) socket.emit("authenticate", { room_id: room_id, password: password });
+    else window.location.href = "index.html";
   });
 
   // redirect

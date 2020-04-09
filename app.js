@@ -34,8 +34,7 @@ app.use((req, res, next) => {
   if (req.session.authorized_rooms == undefined) {
     req.session.authorized_rooms = [];
   }
-  console.log("starting use",req.session.authorized_rooms );
-  console.log("HTTP request", req.method, req.url, req.body);
+  console.log("HTTP request", req.method, req.url, req.body, req.session.authorized_rooms);
   next();
 });
 
@@ -86,16 +85,20 @@ connect(db => {
 app.get("/room/:room_id", (req, res, next) => {
   let room_id = req.params.room_id;
   connect(db => {
-    db.collection(room_list).findOne({ _id: ObjectID(room_id) }, (err, item) => {
-      if (err) return console.error(err);
-      if (item && !item.private)
-        return res.sendFile(__dirname + '/frontend/room.html');
-      else if (item && item.private && req.session.authorized_rooms.includes(room_id))
-        return res.sendFile(__dirname + '/frontend/room.html');
-      else if (item && item.private && !req.session.authorized_rooms.includes(room_id))
-        return res.redirect(`/authenticate.html?id=${room_id}`);
-      else return res.redirect('/index.html');
-    });
+    try {
+      db.collection(room_list).findOne({ _id: ObjectID(room_id) }, (err, item) => {
+        if (err) return console.error(err);
+        if (item && !item.private)
+          return res.sendFile(__dirname + '/frontend/room.html');
+        else if (item && item.private && req.session.authorized_rooms.includes(room_id))
+          return res.sendFile(__dirname + '/frontend/room.html');
+        else if (item && item.private && !req.session.authorized_rooms.includes(room_id))
+          return res.redirect(`/authenticate.html?id=${room_id}`);
+        else return res.redirect('/index.html');
+      });
+    } catch (error) {
+      return res.redirect('/index.html');
+    }
   });
 });
 
@@ -107,9 +110,8 @@ app.get("/", (req, res, next) => {
 // gets the list of rooms.
 const getRooms = (callback) => {
   connect(db => {
-    db.collection(room_list).find({hidden:false}, { _id: 0, canvas: 0 }).toArray((err, items) => {
+    db.collection(room_list).find({ hidden: false }, { _id: 0, canvas: 0 }).toArray((err, items) => {
       if (err) return console.error(err);
-      console.log("getrooms:", items)
       let room_list = items.map(item => { return { room_id: item._id.toString(), room_name: item.room_name } });
       callback(room_list);
     });
@@ -126,26 +128,33 @@ const findRoomName = (room_name, callback) => {
   });
 };
 
-
 // check if a room id exists.
 const findRoomId = (room_id, callback) => {
   connect(db => {
-    db.collection(room_list).findOne({ _id: ObjectID(room_id) }, (err, item) => {
-      if (err) return console.error(err);
-      callback(item);
-    });
+    try {
+      db.collection(room_list).findOne({ _id: ObjectID(room_id) }, (err, item) => {
+        if (err) return console.error(err);
+        callback(item);
+      });
+    } catch (error) {
+      callback(null);
+    }
   });
 };
 
 //authenticate password
 const is_authenticated = (room_id, password, callback) => {
   connect(db => {
-    db.collection(room_list).findOne({ _id: ObjectID(room_id) }, (err, item) => {
-      if (err) return console.error(err);
-      bcrypt.compare(password, item.password, function (err, valid) {
-        return callback(valid);
+    try {
+      db.collection(room_list).findOne({ _id: ObjectID(room_id) }, (err, item) => {
+        if (err) return console.error(err);
+        bcrypt.compare(password, item.password, function (err, valid) {
+          return callback(valid);
+        });
       });
-    });
+    } catch (error) {
+      callback(null);
+    }
   });
 };
 
@@ -260,7 +269,6 @@ const duplicateLayer = (room_id, layer_name, new_layer_name, callback) => {
     db.collection(room_layers).find({ room_id: room_id }).project({ z_index: 1 }).sort({ z_index: -1 }).limit(1).toArray((err, item) => {
       if (err) return console.error(err);
       db.collection(room_points).find({ room_id: room_id, layer_name: layer_name }).project({ _id: 0 }).toArray((err, point_items) => {
-        console.log("point_items "+point_items)
         if (err) return console.error(err);
         db.collection(room_layers).insertOne({ room_id: room_id, layer_name: new_layer_name, z_index: item[0].z_index + 1 }, (err, new_layer_item) => {
           if (err) return console.error(err);
@@ -320,13 +328,6 @@ const moveLayer = (room_id, layer_name, direction, callback) => {
 // adds a new entry to a layer.
 const updateLayer = (room_id, layer_name, canvas, callback) => {
   connect(db => {
-    // check if adding image.
-    if (canvas.points[0][0] === "image") {
-      // find and delete the existing image.
-
-      console.log("image");
-    }
-
     // remove the "start" and "end" from the points.
     if (canvas.points) {
       if (canvas.points[0][canvas.points[0].length - 1] == "start") canvas.points[0].pop();
@@ -403,9 +404,9 @@ io.on('connection', socket => {
     let hidden = data.hidden;
     // check if room exists
     findRoomName(room_name, (item) => {
-      if (item) return io.emit('error', `Room ${room_name} already exists.`);
+      if (item) return io.to(socket.id).emit('error', `Room ${room_name} already exists.`);
       createRoom(room_name, password, hidden, (room) => {
-        if (hidden) io.emit('showID', `your hidden room ID: ${room._id}`);
+        if (hidden) io.to(socket.id).emit('showID', `Your hidden room ID: ${room._id}`);
         getRooms(room_list => {
           io.emit('listrooms', room_list);
         });
@@ -416,15 +417,15 @@ io.on('connection', socket => {
   // delete a room
   socket.on('deleteroom', data => {
     findRoomId(data.room_id, (room) => {
-      console.log(socket.handshake.session.authorized_rooms);
-      if (room.private && !socket.handshake.session.authorized_rooms.includes(data.room_id)){
+      if (!room) return io.to(socket.id).emit('error', `Room with id ${data.room_id} does not exist.`);
+      if (room.private && !socket.handshake.session.authorized_rooms.includes(data.room_id)) {
         return io.to(socket.id).emit('error', "you are not authrorized to delete this room, please enter the room with credentials first");
       }
       deleteRoom(data.room_id, () => {
         getRooms(room_list => {
           io.emit('listrooms', room_list);
           io.to(data.room_id).emit('redirect', { destination: '/index.html' });
-          io.to(socket.id).emit('error',`deleted room ${room.room_name}`);
+          io.to(socket.id).emit('error', `deleted room ${room.room_name}`);
         });
       });
     });

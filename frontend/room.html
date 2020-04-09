@@ -11,15 +11,10 @@
   <header class="container">
     <nav class="navbar navbar-light bg-light col-12 nav-width">
       <a href="/" id="title" class="navbar-brand">Home</a>
-
       <h1 class="">Realtime Collaborative Image Editor</h1>
-
     </nav>
     <h1 id="room_name" class="nav-width"></h1>
   </header>
-
-
-
 
   <div class="container main-content">
     <div class="row">
@@ -48,7 +43,7 @@
               </div>
               <form id="new_layer_form">
                 <div class="modal-body">
-                  Layer Name: <input class=".col-6 .col-sm-4 form-control" id="layer_name_input" type="text" required
+                  <input class=".col-6 .col-sm-4 form-control" id="layer_name_input" type="text" placeholder="Layer Name" required
                     maxlength="15">
                 </div>
                 <div class="modal-footer">
@@ -64,6 +59,7 @@
       </div>
     </div>
   </div>
+
   <script src="https://code.jquery.com/jquery-3.4.1.slim.min.js"
     integrity="sha384-J6qa4849blE2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n"
     crossorigin="anonymous"></script>
@@ -81,6 +77,7 @@
     integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6"
     crossorigin="anonymous"></script>
   <script src="http://SortableJS.github.io/Sortable/Sortable.js"></script>
+
   <script src="/js/canvas-designer-widget.js"></script>
   <script src="/socket.io/socket.io.js"></script>
   <script src="/js/room_api.js"></script>

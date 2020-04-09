@@ -5,117 +5,63 @@
   const room_id = window.location.pathname.split("/")[2];
 
   window.addEventListener('load', function () {
-    options = {
-      animation: 150,
-    };
-    events = [
-      'onEnd'
-    ].forEach(function (name) {
+    // join the room on  load.
+    socket.emit('joinroom', { room_id: room_id });
+
+    // move layer events.
+    options = { animation: 150 };
+    events = ['onEnd'].forEach(function (name) {
       options[name] = function (evt) {
-        /*
-        console.log({
-          'event': name,
-          'layerName': evt.item.innerText,
-          'oldIndex': evt.oldIndex,
-          'newIndex': evt.newIndex
-        });
-        */
         let layer_name = evt.item.innerText;
         let oldIndex = evt.oldIndex;
         let newIndex = evt.newIndex;
         let steps = Math.abs(oldIndex - newIndex);
-        console.log(steps)
         if (oldIndex > newIndex) {
           for (var i = 0; i < steps; i++) {
-            //console.log('movelayer ', { room_id: room_id, layer_name: layer_name, direction: 1 })
             socket.emit('movelayer', { room_id: room_id, layer_name: layer_name, direction: 1 })
           }
         } else if (oldIndex < newIndex) {
           for (var i = 0; i < steps; i++) {
-            //console.log('movelayer ', { room_id: room_id, layer_name: layer_name, direction: -1 })
             socket.emit('movelayer', { room_id: room_id, layer_name: layer_name, direction: -1 })
           }
         }
-
       };
-    })
-      ;
-
+    });
     Sortable.create(layer_panel_list, options);
 
+<<<<<<< HEAD
     socket.emit('joinroom', { room_id: room_id });
 
     document.querySelector("#create_layer").addEventListener("click", () => {
       let new_layer_name = document.querySelector("#layer_name_input").value
+=======
+    // add event listener for layer_create button.
+    document.querySelector("#layer_create").addEventListener("click", () => {
+      let new_layer_name = prompt("New Layer Name");
+>>>>>>> 2282745bec88311a582e01655942d6fd89d702cc
       if (new_layer_name) socket.emit('createlayer', { room_id: room_id, new_layer_name: new_layer_name })
     });
 
+    // add event listener for layer_delete button.
     document.querySelector("#layer_delete").addEventListener("click", () => {
-      //console.log(Object.keys(room_api.selected_layer).length);
       if (Object.keys(room_api.selected_layer).length == 0) {
-        console.log("No selected layer to delete");
+        alert("No layer selected to delete");
         return;
       };
       let layer_name = room_api.selected_layer.canvas_layer.getAttribute("layer_name");
       if (layer_name) socket.emit('deletelayer', { room_id: room_id, layer_name: layer_name })
     });
 
+    // add event listener for layer_duplicate button.
     document.querySelector("#layer_duplicate").addEventListener("click", () => {
       if (Object.keys(room_api.selected_layer).length == 0) {
-        console.log("No selected layer to duplicate");
+        alert("No layer selected to duplicate");
         return;
       };
       let new_layer_name = prompt("New Layer Name");
       let layer_name = room_api.selected_layer.canvas_layer.getAttribute("layer_name");
       if (new_layer_name) socket.emit('duplicatelayer', { room_id: room_id, layer_name: layer_name, new_layer_name: new_layer_name })
     });
-    /*
-        document.querySelector(".layer_list_row").addEventListener("onEnd", () => {
-          console.log("onEnd received")
-          
-          if (Object.keys(room_api.selected_layer).length == 0) {
-            console.log("No selected layer to move up");
-            return;
-          };
-          let layer_name = room_api.selected_layer.canvas_layer.getAttribute("layer_name");
-          let index = room_api.layers.findIndex(layer => layer.layer_name === layer_name);
-          if (index >= room_api.layers.length - 1) {
-            console.error("Cannot move first layer up.");
-            alert("Cannot move first layer up.");
-            return;
-          }
-          if (layer_name) socket.emit('movelayer', { room_id: room_id, layer_name: layer_name, direction: 1})
-        });
-    /*
-        document.querySelector("#layer_up").addEventListener("click", () => {
-          if (Object.keys(room_api.selected_layer).length == 0) {
-            console.log("No selected layer to move up");
-            return;
-          };
-          let layer_name = room_api.selected_layer.canvas_layer.getAttribute("layer_name");
-          let index = room_api.layers.findIndex(layer => layer.layer_name === layer_name);
-          if (index >= room_api.layers.length - 1) {
-            console.error("Cannot move first layer up.");
-            alert("Cannot move first layer up.");
-            return;
-          }
-          if (layer_name) socket.emit('movelayer', { room_id: room_id, layer_name: layer_name, direction: 1 })
-        });
-    
-        document.querySelector("#layer_down").addEventListener("click", () => {
-          if (Object.keys(room_api.selected_layer).length == 0) {
-            console.log("No selected layer to move down");
-            return;
-          };
-          let layer_name = room_api.selected_layer.canvas_layer.getAttribute("layer_name");
-          let index = room_api.layers.findIndex(layer => layer.layer_name === layer_name);
-          if (index <= 0) {
-            console.error("Cannot move last layer down.");
-            alert("Cannot move last layer down.");
-            return;
-          }
-          if (layer_name) socket.emit('movelayer', { room_id: room_id, layer_name: layer_name, direction: -1 })
-        });*/
   });
 
   // first join the room.
@@ -149,7 +95,6 @@
 
   // sync layers
   socket.on('layerload', data => {
-    // console.log('layerload', data);
     if (data.mode === "create") {
       // create a new layer.
       const new_layer = room_api.createLayer(data.layer_name, data.z_index);
@@ -193,7 +138,6 @@
 
   // sync data
   socket.on('canvasload', data => {
-    // console.log('canvasload', data);
     room_api.layers.find(layer => layer.layer_name === data.layer_name).designer.syncData(data.canvas);
   });
 
@@ -201,18 +145,5 @@
     console.error(data);
     alert(data);
   });
-
-  String.prototype.hashCode = function () {
-    var hash = 0;
-    if (this.length == 0) {
-      return hash;
-    }
-    for (var i = 0; i < this.length; i++) {
-      var char = this.charCodeAt(i);
-      hash = ((hash << 5) - hash) + char;
-      hash = hash & hash; // Convert to 32bit integer
-    }
-    return hash;
-  }
 
 }());
