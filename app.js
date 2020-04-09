@@ -128,7 +128,6 @@ const findRoomName = (room_name, callback) => {
   });
 };
 
-
 // check if a room id exists.
 const findRoomId = (room_id, callback) => {
   connect(db => {
@@ -138,7 +137,7 @@ const findRoomId = (room_id, callback) => {
         callback(item);
       });
     } catch (error) {
-      callback(null)
+      callback(null);
     }
   });
 };
@@ -146,12 +145,16 @@ const findRoomId = (room_id, callback) => {
 //authenticate password
 const is_authenticated = (room_id, password, callback) => {
   connect(db => {
-    db.collection(room_list).findOne({ _id: ObjectID(room_id) }, (err, item) => {
-      if (err) return console.error(err);
-      bcrypt.compare(password, item.password, function (err, valid) {
-        return callback(valid);
+    try {
+      db.collection(room_list).findOne({ _id: ObjectID(room_id) }, (err, item) => {
+        if (err) return console.error(err);
+        bcrypt.compare(password, item.password, function (err, valid) {
+          return callback(valid);
+        });
       });
-    });
+    } catch (error) {
+      callback(null);
+    }
   });
 };
 

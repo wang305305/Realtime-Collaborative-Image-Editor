@@ -55,6 +55,7 @@
   border: solid gray 1px;
   text-align: center;
   width: 100%;
+  cursor: default;
 }
 
 .layer_element:hover {
@@ -65,26 +66,14 @@
   border: solid black 2px;
 }
 
-.layer_visibilility {
-  margin: 5px;
-  padding: 5px;
-  border: solid gray 1px;
-  text-align: center;
-  width: 20px;
-}
-
-.layer_visibilility.visible {
-  background-color: #696969;
-}
-
-.layer_visibilility.invisible {
-  background-color: #bdbdbd;
-}
-
 .native-hidden {
   -webkit-appearance: none;
   -moz-appearance: none;
   appearance: none;
+}
+
+.eye {
+  cursor: pointer;
 }
 
 input[type="checkbox"] {

@@ -2,7 +2,6 @@
 
   const socket = io('/');
   socket.emit('getrooms');
-  console.log("index js")
 
   // enter a room
   document.querySelector("#button-addon2").addEventListener("click", e => {
