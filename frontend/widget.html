@@ -479,29 +479,29 @@
 
         <canvas id="eraser-icon" width="40" height="40" title="Erase drawings" style="display: block;"></canvas>
         <canvas id="text-icon" width="40" height="40" title="Write text" style="display: block;"></canvas>
-        <canvas id="image-icon" width="40" height="40" title="Add image" style="display: block;"></canvas>
+        <canvas id="image-icon" width="40" height="40" title="Add image" style="display: hidden;"></canvas>
 
-        <canvas id="pdf-icon" width="40" height="40" title="Add pdf" style="display: block;"></canvas>
+        <canvas id="pdf-icon" width="40" height="40" title="Add pdf" style="display: hidden;"></canvas>
 
-        <canvas id="drag-last-path" width="40" height="40" title="Drag/move last path" style="display: block;"></canvas>
-        <canvas id="drag-all-paths" width="40" height="40" title="Drag/move all paths" style="display: block;"></canvas>
+        <canvas id="drag-last-path" width="40" height="40" title="Drag/move last path" style="display: hidden;"></canvas>
+        <canvas id="drag-all-paths" width="40" height="40" title="Drag/move all paths" style="display: hidden;"></canvas>
 
         <canvas id="line" width="40" height="40" title="Draw Lines" style="display: block;"></canvas>
         <canvas id="arrow" width="40" height="40" title="Draw Arrows" style="display: block;"></canvas>
 
-        <canvas id="zoom-up" width="40" height="40" title="Zoon-In" style="display: block;"></canvas>
-        <canvas id="zoom-down" width="40" height="40" title="Zoom-Out" style="display: block;"></canvas>
+        <canvas id="zoom-up" width="40" height="40" title="Zoon-In" style="display: hidden;"></canvas>
+        <canvas id="zoom-down" width="40" height="40" title="Zoom-Out" style="display: hidden;"></canvas>
 
         <canvas id="arc" width="40" height="40" title="Arc" style="display: block;"></canvas>
         <canvas id="rectangle" width="40" height="40" title="Rectangle" style="display: block;"></canvas>
-        <canvas id="quadratic-curve" width="40" height="40" title="Quadratic curve" style="display: block;"></canvas>
-        <canvas id="bezier-curve" width="40" height="40" title="Bezier curve" style="display: block;"></canvas>
+        <canvas id="quadratic-curve" width="40" height="40" title="Quadratic curve" style="display: hidden;"></canvas>
+        <canvas id="bezier-curve" width="40" height="40" title="Bezier curve" style="display: hidden;"></canvas>
 
-        <canvas id="undo" width="40" height="40" title="Undo: Remove recent shapes" style="display: block;"></canvas>
+        <canvas id="undo" width="40" height="40" title="Undo: Remove recent shapes" style="display: hidden;"></canvas>
 
         <canvas id="line-width" width="40" height="40" title="Set line-width" style="display: block;"></canvas>
         <canvas id="colors" width="40" height="40" title="Set foreground and background colors" style="display: block;"></canvas>
-        <canvas id="additional" width="40" height="40" title="Extra options" style="display: block;"></canvas>
+        <canvas id="additional" width="40" height="40" title="Extra options" style="display: hidden;"></canvas>
     </section>
 
     <!-- pdf -->
@@ -528,9 +528,9 @@
         <textarea id="code-text" class="code-text allow-select"></textarea>
     </section>
 
-    <section class="preview-panel" style="display: block;">
-        <div id="design-preview" class="preview-selected">Preview</div>
-        <div id="code-preview">Code</div>
+    <section class="preview-panel" style="display: none;">
+        <div id="design-preview" class="preview-selected" style="display: none;">Preview</div>
+        <div id="code-preview" style="display: none;">Code</div>
     </section>
 
     <!-- options -->

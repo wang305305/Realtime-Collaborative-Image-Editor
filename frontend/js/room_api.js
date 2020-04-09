@@ -8,7 +8,7 @@ const room_api = (function () {
 
   module.createLayer = (layer_name = `layer_${module.layers.length}`, z_index = module.layers.length, selected = false, load = false) => {
     let new_layer = { layer_name: layer_name, z_index: z_index, selected: selected };
-    // create the new canvase designer.
+    // create the new canvas designer.
     new_layer.designer = new CanvasDesigner();
     new_layer.designer.widgetHtmlURL = '/widget.html';
     new_layer.designer.widgetJsURL = '/js/a.js';
@@ -30,7 +30,7 @@ const room_api = (function () {
       zoom: false,
       lineWidth: true,
       colorsPicker: true,
-      extraOptions: true,
+      extraOptions: false,
       code: true,
       undo: false
     })
@@ -73,13 +73,11 @@ const room_api = (function () {
     vis_toggle.addEventListener("click", () => {
       if (canvas_layer.classList.contains("hidden")) {
         vis_toggle.classList.remove('fa-eye-slash');
-              
         vis_toggle.classList.add('fa-eye');
         canvas_layer.classList.remove("hidden");
       }
       else {
         vis_toggle.classList.remove('fa-eye');
-              
         vis_toggle.classList.add('fa-eye-slash');
         canvas_layer.classList.add("hidden");
       }

@@ -1,19 +1,7 @@
 .room-entry {
-  display:flex;
-  justify-content:space-between;
+  display: flex;
+  justify-content: space-between;
   margin: 5px;
-}
-
-.room-link {
-
-}
-
-.room-delete {
-
-}
-
-.room-id {
-
 }
 
 .new-room {
@@ -22,10 +10,9 @@
 }
 
 #new-room2 {
-margin-right: 5px;
-padding-right: 27px;
+  margin-right: 5px;
+  padding-right: 27px;
 }
-
 
 .auth-jumbotron {
   padding: 2rem 2rem 2rem 2rem;
@@ -34,7 +21,6 @@ padding-right: 27px;
 .room-list {
   padding: 2rem 2rem 2rem 2rem;
 }
-
 
 .delete-icon::after {
   content: "×";
@@ -46,4 +32,18 @@ padding-right: 27px;
 
 .hidden {
   visibility: hidden;
+}
+
+.elementToFadeInAndOut {
+  opacity: 1;
+  animation: fade 5s linear;
+}
+
+@keyframes fade {
+  0%, 100% {
+    opacity: 0
+  }
+  50% {
+    opacity: 1
+  }
 }

@@ -1,36 +1,38 @@
-body {
-  /* background-color: hotpink; */
-}
-
 .canvas_layer {
   position: absolute;
-  height: 500px; 
+  height: 500px;
   width: 700px;
 }
 
-#room_name{
+#room_name {
   min-height: 37px;
 }
 
-.layers{
-  margin-left:25px; width:350px
+.layers {
+  margin-left: 25px;
+  width: 350px
 }
 
-.main-content{
+.main-content {
   padding-left: 30px;
 }
-#layer_panel_list{
-  overflow:hidden; overflow-y:auto; height:200px;
+
+#layer_panel_list {
+  overflow: hidden;
+  overflow-y: auto;
+  height: 200px;
 }
+
 .canvas_layer.hidden {
   visibility: hidden;
 }
 
 #designer_layers {
   position: relative;
-  height: 500px; 
+  height: 510px;
   margin-bottom: 20px;
-  width:700px;
+  padding: 5px;
+  width: 710px;
   min-width: 700px;
   border: solid black 1px;
 }
@@ -93,6 +95,7 @@ input[type="checkbox"] {
   margin: 5px;
   margin-top: 7px;
 }
+
 input[type="checkbox"]:checked {
   content: url('../uploads/invis.png');
   display: block;

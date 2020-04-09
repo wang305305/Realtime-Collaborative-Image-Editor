@@ -18,7 +18,6 @@
     });
 
     document.querySelector("#layer_delete").addEventListener("click", () => {
-      //console.log(Object.keys(room_api.selected_layer).length);
       if (Object.keys(room_api.selected_layer).length == 0) {
         console.log("No selected layer to delete");
         return;
@@ -36,7 +35,7 @@
       let layer_name = room_api.selected_layer.canvas_layer.getAttribute("layer_name");
       if (new_layer_name) socket.emit('duplicatelayer', { room_id: room_id, layer_name: layer_name, new_layer_name: new_layer_name })
     });
-/*
+    /*
     document.querySelector("#layer_up").addEventListener("click", () => {
       if (Object.keys(room_api.selected_layer).length == 0) {
         console.log("No selected layer to move up");
@@ -99,7 +98,6 @@
 
   // sync layers
   socket.on('layerload', data => {
-    // console.log('layerload', data);
     if (data.mode === "create") {
       // create a new layer.
       const new_layer = room_api.createLayer(data.layer_name, data.z_index);
@@ -143,7 +141,6 @@
 
   // sync data
   socket.on('canvasload', data => {
-    // console.log('canvasload', data);
     room_api.layers.find(layer => layer.layer_name === data.layer_name).designer.syncData(data.canvas);
   });
 
@@ -151,18 +148,5 @@
     console.error(data);
     alert(data);
   });
-
-  String.prototype.hashCode = function () {
-    var hash = 0;
-    if (this.length == 0) {
-      return hash;
-    }
-    for (var i = 0; i < this.length; i++) {
-      var char = this.charCodeAt(i);
-      hash = ((hash << 5) - hash) + char;
-      hash = hash & hash; // Convert to 32bit integer
-    }
-    return hash;
-  }
 
 }());
