@@ -54,7 +54,7 @@ const room_api = (function () {
     layer_list_row.setAttribute("ondragstart", "drag(event)");*/
     layer_list_row.innerHTML = `
     <div class="layer_element" layer_name="${layer_name}">${layer_name}</div>
-    <input class="native-hidden" type="checkbox" />`
+    <i class="fa fa-eye fa-2x" aria-hidden="true" id="eye" style="padding-top:5px;"></i>`
     new_layer.layer_list_row = layer_list_row;
     // check if enough layers in list.
     // console.log( layer_panel_list.children[layer_panel_list.children.length - 1 - z_index]);
@@ -66,15 +66,21 @@ const room_api = (function () {
     layer_list_row.querySelector(".layer_element").addEventListener("click", () => {
       module.selectLayer(layer_name);
     });
+
+
     // add listner to the layer visibilility button.
-    const vis_toggle = layer_list_row.querySelector(".native-hidden");
+    const vis_toggle = layer_list_row.querySelector("#eye");
     vis_toggle.addEventListener("click", () => {
       if (canvas_layer.classList.contains("hidden")) {
-
+        vis_toggle.classList.remove('fa-eye-slash');
+              
+        vis_toggle.classList.add('fa-eye');
         canvas_layer.classList.remove("hidden");
       }
       else {
-
+        vis_toggle.classList.remove('fa-eye');
+              
+        vis_toggle.classList.add('fa-eye-slash');
         canvas_layer.classList.add("hidden");
       }
     });
