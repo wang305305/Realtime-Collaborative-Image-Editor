@@ -29,16 +29,10 @@
     });
     Sortable.create(layer_panel_list, options);
 
-<<<<<<< HEAD
     socket.emit('joinroom', { room_id: room_id });
 
     document.querySelector("#create_layer").addEventListener("click", () => {
       let new_layer_name = document.querySelector("#layer_name_input").value
-=======
-    // add event listener for layer_create button.
-    document.querySelector("#layer_create").addEventListener("click", () => {
-      let new_layer_name = prompt("New Layer Name");
->>>>>>> 2282745bec88311a582e01655942d6fd89d702cc
       if (new_layer_name) socket.emit('createlayer', { room_id: room_id, new_layer_name: new_layer_name })
     });
 
