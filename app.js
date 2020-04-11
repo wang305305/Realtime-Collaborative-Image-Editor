@@ -418,17 +418,17 @@ io.on('connection', socket => {
     });
   });
 
-    // enter a room
-    socket.on('enterroom', data => {
-      if (data.room_id=="") return io.to(socket.id).emit('error', `Please provide a room id.`);
-      findRoomId(data.room_id, (room) => {
-        if (!room) return io.to(socket.id).emit('error', `Room with id ${data.room_id} does not exist.`);
-        if (room.private && !socket.handshake.session.authorized_rooms.includes(data.room_id)) {
-          return io.to(socket.id).emit('error', "you are not authrorized to enter this room, please enter the room with credentials first");
-        }
-        return io.to(socket.id).emit('redirect', { destination: `/room/${data.room_id}` });
-      });
+  // enter a room
+  socket.on('enterroom', data => {
+    if (data.room_id == "") return io.to(socket.id).emit('error', `Please provide a room id.`);
+    findRoomId(data.room_id, (room) => {
+      if (!room) return io.to(socket.id).emit('error', `Room with id ${data.room_id} does not exist.`);
+      if (room.private && !socket.handshake.session.authorized_rooms.includes(data.room_id)) {
+        return io.to(socket.id).emit('error', "you are not authrorized to enter this room, please enter the room with credentials first");
+      }
+      return io.to(socket.id).emit('redirect', { destination: `/room/${data.room_id}` });
     });
+  });
 
   // delete a room
   socket.on('deleteroom', data => {

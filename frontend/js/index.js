@@ -15,6 +15,7 @@
   socket.on('redirect', data => {
     window.location.href = data.destination;
   });
+
   //delete a room
   document.querySelector("#delete-button").addEventListener("click", e => {
     e.preventDefault();
@@ -37,6 +38,7 @@
     socket.emit("newroom", { room_name: room_name, password: password, hidden: hidden });
   });
 
+  // input validation for room name
   document.querySelector("#next_button").addEventListener("click", e => {
     let room_name = document.querySelector("#room_name_input").value;
     if (room_name == null || room_name == "") {
@@ -58,6 +60,7 @@
     socket.emit("newroom", { room_name: room_name, password: password, hidden: hidden });
   });
 
+  // set the focus to the text input field and to clear the field after the dialog closes
   window.$('#createRoomModal').on('hidden.bs.modal', function (e) {
     document.querySelector("#room_name_input").value = "";
     document.querySelector("#room_name_input").focus();
@@ -82,10 +85,6 @@
   socket.on('showID', id => {
     document.querySelector("#hidden_room_id").innerHTML = id;
     window.$('#hiddenRoomModal').modal();
-    /*
-    document.querySelector("#hidden_room_id").style.visibility = "visible";
-    document.querySelector("#hidden_room_id").innerHTML = id;
-    */
   });
 
   // display the list of rooms.

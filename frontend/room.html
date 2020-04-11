@@ -13,7 +13,9 @@
       <a href="/" id="title" class="navbar-brand">Home</a>
       <h1 class="">Realtime Collaborative Image Editor</h1>
     </nav>
-    <div class="alert alert-danger alert-dismissible fade show" role="alert" id="room_error_text" style="visibility: hidden;"> 
+    <!-- error box -->
+    <div class="alert alert-danger alert-dismissible fade show" role="alert" id="room_error_text"
+      style="visibility: hidden;">
       <button type="button" class="close" data-dismiss="alert" aria-label="Close">
         <span aria-hidden="true">&times;</span>
       </button>
@@ -23,11 +25,14 @@
 
   <div class="container main-content">
     <div class="row">
+      <!-- canvas -->
       <div id="designer_layers"></div>
+      <!-- Layer list -->
       <div class="layers">
         <h2>Layers</h2>
         <div id="layers_panel" class="row d-flex justify-content-around">
           <div id="layer_panel_list"></div>
+          <!-- Layer buttons -->
           <ul class="list-group">
             <button type="button" class="list-group-item list-group-item-action active" data-toggle="modal"
               data-target="#createLayerModal" id="layer_create">Create</button>
@@ -35,7 +40,7 @@
             <button type="button" class="list-group-item list-group-item-action" id="layer_duplicate">Duplicate</button>
           </ul>
         </div>
-        <!-- Modal -->
+        <!-- Create Layer Modal -->
         <div class="modal fade" id="createLayerModal" tabindex="-1" role="dialog" aria-labelledby="createLayerModal"
           aria-hidden="true">
           <div class="modal-dialog" role="document">
@@ -48,8 +53,8 @@
               </div>
               <form id="new_layer_form">
                 <div class="modal-body">
-                  <input class=".col-6 .col-sm-4 form-control" id="layer_name_input" type="text" placeholder="Layer Name" required
-                    maxlength="15">
+                  <input class=".col-6 .col-sm-4 form-control" id="layer_name_input" type="text"
+                    placeholder="Layer Name" required maxlength="15">
                 </div>
                 <div class="modal-footer">
                   <button class="btn btn-primary" type="submit" data-dismiss="modal" id="create_layer">Create</button>
