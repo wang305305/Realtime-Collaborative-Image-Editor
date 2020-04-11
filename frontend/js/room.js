@@ -83,9 +83,11 @@
     });
   });
 
-  // set the focus to the text input field and to clear the field after the dialog closes
-  window.$('#createLayerModal').on('shown.bs.modal', function (e) {
+// set the focus to the text input field and to clear the field after the dialog closes
+  window.$('#createLayerModal').on('hidden.bs.modal', function (e) {
     document.querySelector("#layer_name_input").value = "";
+  });
+  window.$('#createLayerModal').on('shown.bs.modal', function (e) {
     document.querySelector("#layer_name_input").focus();
   });
 
@@ -127,6 +129,8 @@
 
   // sync layers
   socket.on('layerload', data => {
+    document.querySelector("#room_error_text").innerHTML = "";
+    document.querySelector("#room_error_text").style.visibility = "hidden";
     if (data.mode === "create") {
       // create a new layer.
       const new_layer = room_api.createLayer(data.layer_name, data.z_index);
