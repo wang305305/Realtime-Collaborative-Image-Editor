@@ -28,6 +28,9 @@
               data-target="#createLayerModal" id="layer_create">Create</button>
             <button type="button" class="list-group-item list-group-item-action" id="layer_delete">Delete</button>
             <button type="button" class="list-group-item list-group-item-action" id="layer_duplicate">Duplicate</button>
+            <button type="button" class="list-group-item list-group-item-action" id="layer_export">Export</button>
+            <button type="button" class="list-group-item list-group-item-action" id="layer_share">Share</button>
+            <div id="link"></div>
           </ul>
         </div>
         <!-- Modal -->
@@ -43,8 +46,8 @@
               </div>
               <form id="new_layer_form">
                 <div class="modal-body">
-                  <input class=".col-6 .col-sm-4 form-control" id="layer_name_input" type="text" placeholder="Layer Name" required
-                    maxlength="15">
+                  <input class=".col-6 .col-sm-4 form-control" id="layer_name_input" type="text"
+                    placeholder="Layer Name" required maxlength="15">
                 </div>
                 <div class="modal-footer">
                   <button class="btn btn-primary" type="submit" data-dismiss="modal" id="create_layer">Create</button>
@@ -79,6 +82,7 @@
   <script src="http://SortableJS.github.io/Sortable/Sortable.js"></script>
 
   <script src="/js/canvas-designer-widget.js"></script>
+  <script src="/js/canvas2image.js"></script>
   <script src="/socket.io/socket.io.js"></script>
   <script src="/js/room_api.js"></script>
   <script src="/js/room.js"></script>

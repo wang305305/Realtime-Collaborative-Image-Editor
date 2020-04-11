@@ -57,6 +57,30 @@
       let layer_name = room_api.selected_layer.canvas_layer.getAttribute("layer_name");
       if (new_layer_name) socket.emit('duplicatelayer', { room_id: room_id, layer_name: layer_name, new_layer_name: new_layer_name })
     });
+
+    // add event listener for layer_export button
+    document.querySelector("#layer_export").addEventListener("click", () => {
+      if (Object.keys(room_api.selected_layer).length == 0) {
+        alert("No layer selected to export");
+        return;
+      };
+      let iframe = room_api.selected_layer.canvas_layer.querySelector('iframe');
+      let iframeDocument = iframe.contentDocument || iframe.contentWindow.document;
+      let canvas = iframeDocument.querySelector('#main-canvas');
+      Canvas2Image.saveAsImage(canvas);
+    });
+
+    // add event listener for layer_share button
+    document.querySelector("#layer_share").addEventListener("click", () => {
+      if (Object.keys(room_api.selected_layer).length == 0) {
+        alert("No layer selected to export");
+        return;
+      };
+      let iframe = room_api.selected_layer.canvas_layer.querySelector('iframe');
+      let iframeDocument = iframe.contentDocument || iframe.contentWindow.document;
+      let url = iframeDocument.querySelector('#main-canvas').toDataURL("image/png");
+      if (url) socket.emit('sharelayer', { room_id: room_id, layer_name: room_api.selected_layer.layer_name, url: url });
+    });
   });
 
   // first join the room.
@@ -136,6 +160,12 @@
     room_api.layers.find(layer => layer.layer_name === data.layer_name).designer.syncData(data.canvas);
   });
 
+  // open layer image to share.
+  socket.on('share', data => {
+    window.open(data);
+  });
+
+  // error message
   socket.on('error', data => {
     console.error(data);
     alert(data);
