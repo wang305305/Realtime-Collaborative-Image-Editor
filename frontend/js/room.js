@@ -83,7 +83,7 @@
     });
   });
 
-// set the focus to the text input field and to clear the field after the dialog closes
+  // set the focus to the text input field and to clear the field after the dialog closes
   window.$('#createLayerModal').on('hidden.bs.modal', function (e) {
     document.querySelector("#layer_name_input").value = "";
   });
