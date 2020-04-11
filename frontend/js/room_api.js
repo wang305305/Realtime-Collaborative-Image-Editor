@@ -45,7 +45,8 @@ const room_api = (function () {
     designer_layers.prepend(canvas_layer);
 
     // add layer to the layer panel list.
-    const layer_panel_list = document.querySelector("#layer_panel_list")
+    const layer_panel_list = document.querySelector("#layer_panel_list");
+    console.log("creating layer_list_row")
     const layer_list_row = document.createElement("div");
     layer_list_row.classList.add("layer_list_row");
     layer_list_row.innerHTML = `

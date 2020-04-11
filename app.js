@@ -1,10 +1,8 @@
 const express = require('express');
 const app = express();
-const path = require('path');
 const http = require('http').createServer(app);
 const io = require('socket.io')(http);
 const fs = require("fs");
-
 
 const bodyParser = require('body-parser');
 app.use(bodyParser.urlencoded({ extended: false }));
@@ -102,7 +100,7 @@ app.get("/room/:room_id", (req, res, next) => {
         else return res.redirect('/index.html');
       });
     } catch (error) {
-      return res.redirect('/index.html');
+      res.redirect('/index.html')
     }
   });
 });
@@ -244,6 +242,7 @@ const getRoom = (room_id, callback) => {
 
 // creates a new layer.
 const createLayer = (room_id, new_layer_name, callback) => {
+  console.log("adding new layer to db")
   connect(db => {
     db.collection(room_layers).find({ room_id: room_id }).project({ z_index: 1 }).sort({ z_index: -1 }).limit(1).toArray((err, item) => {
       if (err) return console.error(err);
@@ -446,6 +445,7 @@ io.on('connection', socket => {
 
   // join the room
   socket.on('joinroom', data => {
+    console.log("on joinroom")
     socket.join(data.room_id);
     findRoomId(data.room_id, (room) => {
       if (room) {
@@ -489,8 +489,21 @@ io.on('connection', socket => {
     });
   });
 
+  // enter a room
+  socket.on('enterroom', data => {
+    if (data.room_id == "") return io.to(socket.id).emit('error', `Please provide a room id.`);
+    findRoomId(data.room_id, (room) => {
+      if (!room) return io.to(socket.id).emit('error', `Room with id ${data.room_id} does not exist.`);
+      if (room.private && !socket.handshake.session.authorized_rooms.includes(data.room_id)) {
+        return io.to(socket.id).emit('error', "you are not authrorized to enter this room, please enter the room with credentials first");
+      }
+      return io.to(socket.id).emit('redirect', { destination: `/room/${data.room_id}` });
+    });
+  });
+
   // delete a room
   socket.on('deleteroom', data => {
+    if (!data.room_id) return io.to(socket.id).emit('error', `Please provide a room id.`);
     findRoomId(data.room_id, (room) => {
       if (!room) return io.to(socket.id).emit('error', `Room with id ${data.room_id} does not exist.`);
       if (room.private && !socket.handshake.session.authorized_rooms.includes(data.room_id)) {
@@ -500,7 +513,7 @@ io.on('connection', socket => {
         getRooms(room_list => {
           io.emit('listrooms', room_list);
           io.to(data.room_id).emit('redirect', { destination: '/index.html' });
-          io.to(socket.id).emit('error', `deleted room ${room.room_name}`);
+          //io.to(socket.id).emit('error', `deleted room ${room.room_name}`);
         });
       });
     });

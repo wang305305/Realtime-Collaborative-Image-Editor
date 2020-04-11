@@ -12,6 +12,11 @@
         <a href="/" id="title" class="navbar-brand">Home</a>
         <h1 class="">Realtime Collaborative Image Editor</h1>
       </nav>
+      <div class="alert alert-danger alert-dismissible fade show" role="alert" id="error_text" style="visibility: hidden;"> 
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
     </header>
     <br>
     <div class="container d-flex justify-content-between" id="new-room">
@@ -20,10 +25,9 @@
         <form id="new_room_form">
           <input class=".col-6 .col-sm-4 form-control" id="room_name_input" type="text" placeholder="Room Name" required maxlength="30">
           <br>
-          <button class="btn btn-primary" type="button" data-toggle="modal"
-            data-target="#createRoomModal">Next</button><br>
+          <button class="btn btn-primary" type="button" id="next_button">Next</button><br>
 
-          <!-- Modal -->
+          <!-- Create Room Modal -->
           <div class="modal fade" id="createRoomModal" tabindex="-1" role="dialog" aria-labelledby="createRoomModal"
             aria-hidden="true">
             <div class="modal-dialog" role="document">
@@ -50,7 +54,7 @@
             </div>
           </div>
 
-          <!-- Modal -->
+          <!-- Private Room Modal -->
           <div class="modal fade" id="privateRoomModal" tabindex="-1" role="dialog" aria-labelledby="privateRoomModal"
             aria-hidden="true">
             <div class="modal-dialog" role="document">
@@ -79,8 +83,28 @@
             </div>
           </div>
         </form>
-        <p id="hidden_room_id" class="hidden"></p>
       </div>
+
+      <!-- Hidden Room ID Modal -->
+      <div class="modal fade" id="hiddenRoomModal" tabindex="-1" role="dialog" aria-labelledby="hiddenRoomModal"
+      aria-hidden="true">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="hiddenRoomModalTitle">Hidden Room Created
+            </h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <div class="modal-body" id="hidden_room_id">
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+          </div>
+        </div>
+      </div>
+    </div>
 
       <div class="col-6 jumbotron room-list" id="room_list_block">
         <h2 class="display-6">Rooms</h2>
@@ -97,24 +121,21 @@
         <ul id="room_list" class="list-group"></ul>
       </div>
     </div>
-
-    <p class="error" id="error_text" style="visibility: hidden;"></p>
-
     <script src="https://code.jquery.com/jquery-3.4.1.slim.min.js"
       integrity="sha384-J6qa4849blE2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n"
       crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"
       integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo"
       crossorigin="anonymous"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js"
-      integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6"
-      crossorigin="anonymous"></script>
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css"
-      integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js"
-      integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6"
-      crossorigin="anonymous"></script>
-    <script src="http://SortableJS.github.io/Sortable/Sortable.js"></script>
+
+    <script src="js/bootstrap.min.js"></script>
+    
+    <link href="style/bootstrap.min.css" rel="stylesheet" type="text/css" />
+
+    
+
+
+    
 
 
     <link href="style/main.css" rel="stylesheet" type="text/css" />

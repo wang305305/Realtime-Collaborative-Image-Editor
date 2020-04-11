@@ -5,7 +5,7 @@
   const room_id = window.location.pathname.split("/")[2];
 
   window.addEventListener('load', function () {
-    // join the room on  load.
+    // join the room on load.
     socket.emit('joinroom', { room_id: room_id });
 
     // move layer events.
@@ -28,10 +28,12 @@
       };
     });
     Sortable.create(layer_panel_list, options);
-
-    // add event listener for layer_create button.
-    // document.querySelector("#layer_create").addEventListener("click", () => {
-    //   let new_layer_name = prompt("New Layer Name");
+    // write an error message to the screen.
+    socket.on('error', message => {
+      const error_text = document.querySelector("#room_error_text");
+      error_text.style.visibility = "visible";
+      error_text.innerHTML = message;
+    });
     document.querySelector("#create_layer").addEventListener("click", () => {
       let new_layer_name = document.querySelector("#layer_name_input").value
       if (new_layer_name) socket.emit('createlayer', { room_id: room_id, new_layer_name: new_layer_name })
@@ -40,7 +42,7 @@
     // add event listener for layer_delete button.
     document.querySelector("#layer_delete").addEventListener("click", () => {
       if (Object.keys(room_api.selected_layer).length == 0) {
-        alert("No layer selected to delete");
+        socket.emit("error", "No layer selected to delete");
         return;
       };
       let layer_name = room_api.selected_layer.canvas_layer.getAttribute("layer_name");
@@ -50,7 +52,7 @@
     // add event listener for layer_duplicate button.
     document.querySelector("#layer_duplicate").addEventListener("click", () => {
       if (Object.keys(room_api.selected_layer).length == 0) {
-        alert("No layer selected to duplicate");
+        socket.emit("error", "No layer selected to duplicate");
         return;
       };
       let new_layer_name = prompt("New Layer Name");
@@ -85,10 +87,12 @@
 
   // first join the room.
   socket.on('firstjoin', data => {
+    console.log("on firstjoin")
     document.querySelector("#room_name").innerHTML = data.room_name + " Room";
     document.title = data.room_name + " Room - Realtime Collaborative Image Editor";
     data.layers.forEach((layer, i) => {
       // create layer and sync the data.
+      console.log("room_api.createLayer called in firstjoin")
       const new_layer = room_api.createLayer(layer.layer_name, layer.z_index, i == 0, true);
       // sync the points to the canvas layer.
       setTimeout(() => {
@@ -170,5 +174,4 @@
     console.error(data);
     alert(data);
   });
-
 }());
