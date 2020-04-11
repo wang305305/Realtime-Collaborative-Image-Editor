@@ -109,6 +109,10 @@
           let room_id = document.querySelector("#enter_room_input").value;
           window.location.href = "/room/" + room_id;
         });
+        li.querySelector('.room-id').addEventListener('keydown', (event) => {
+          if (event.keyCode === 13) document.querySelector("#button-addon2").click();
+          else if (event.keyCode === 8 || event.keyCode === 46) document.querySelector("#delete-button").click();
+        });
         room_list.append(li);
       });
     }
