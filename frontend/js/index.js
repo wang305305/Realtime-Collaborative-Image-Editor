@@ -59,9 +59,13 @@
     document.querySelector("#room_name_input").value = "";
     socket.emit("newroom", { room_name: room_name, password: password, hidden: hidden });
   });
-
+  
   // set the focus to the text input field and to clear the field after the dialog closes
-  window.$('#createRoomModal').on('hidden.bs.modal', function (e) {
+  window.$('#createPublic').on('click', function (e) {
+    document.querySelector("#room_name_input").value = "";
+    document.querySelector("#room_name_input").focus();
+  });
+  window.$('#closeModal').on('click', function (e) {
     document.querySelector("#room_name_input").value = "";
     document.querySelector("#room_name_input").focus();
   });
