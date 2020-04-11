@@ -115,7 +115,14 @@ const room_api = (function () {
       });
     });
     if (module.layers.length > 0) {
-      module.selectLayer(module.layers[0].layer_name);
+      // change the selected layer if currently selected deleted.
+      if (module.selected_layer.layer_name === layer_name) {
+        if (index == module.layers.length && module.layers.length > 0) {
+          module.selectLayer(module.layers[index - 1].layer_name);
+        } else {
+          module.selectLayer(module.layers[0].layer_name);
+        }
+      }
     } else module.selected_layer = {};
   };
 

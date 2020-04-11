@@ -8,7 +8,6 @@
     e.preventDefault();
     let room_id = document.querySelector("#enter_room_input").value;
     socket.emit("enterroom", { room_id: room_id });
-    //window.location.href = "/room/" + room_id;
   });
 
   // redirect
@@ -41,7 +40,7 @@
   // input validation for room name
   document.querySelector("#next_button").addEventListener("click", e => {
     let room_name = document.querySelector("#room_name_input").value;
-    if (room_name == null || room_name == "") {
+    if (!room_name || room_name === "") {
       socket.emit("error", "please enter a room name");
     } else {
       window.$('#createRoomModal').modal();
@@ -69,11 +68,11 @@
     document.querySelector("#room_name_input").value = "";
     document.querySelector("#room_name_input").focus();
   });
-  window.$('#privateRoomModal').on('hidden.bs.modal', function (e) {
+  window.$('#privateRoomModal').on('hidden.bs.modal', e => {
     document.querySelector("#room_name_input").value = "";
     document.querySelector("#room_name_input").focus();
   });
-  window.$('#hiddenRoomModal').on('hidden.bs.modal', function (e) {
+  window.$('#hiddenRoomModal').on('hidden.bs.modal', e => {
     document.querySelector("#room_name_input").value = "";
     document.querySelector("#room_name_input").focus();
   });
@@ -113,6 +112,10 @@
         li.querySelector('.room-id').addEventListener('dblclick', () => {
           let room_id = document.querySelector("#enter_room_input").value;
           window.location.href = "/room/" + room_id;
+        });
+        li.querySelector('.room-id').addEventListener('keydown', (event) => {
+          if (event.keyCode === 13) document.querySelector("#button-addon2").click();
+          else if (event.keyCode === 8 || event.keyCode === 46) document.querySelector("#delete-button").click();
         });
         room_list.append(li);
       });

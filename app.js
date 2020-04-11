@@ -422,7 +422,7 @@ const deleteRoom = (room_id, callback) => {
       items.forEach(item => {
         fs.unlink(`images/${item._id}.png`, () => { });
       });
-      console.log(`Deleted ${items.length} files from ${__dirname}/images.`);
+      if (items.length) console.log(`Deleted ${items.length} files from ${__dirname}/images.`);
       // delete layer images.
       db.collection(layer_images).deleteMany({ room_id: room_id }, (err, res) => {
         if (err) return console.error(err);
@@ -476,6 +476,8 @@ io.on('connection', socket => {
     let room_name = data.room_name;
     let password = data.password;
     let hidden = data.hidden;
+    if (room_name === "") return io.to(socket.id).emit('error', `Room name must not be empty.`);
+    if (room_name.length > 30) return io.to(socket.id).emit('error', `Room name must be less than 30 characters.`);
     // check if room exists
     findRoomName(room_name, (item) => {
       if (item) return io.to(socket.id).emit('error', `Room ${room_name} already exists.`);
@@ -494,7 +496,7 @@ io.on('connection', socket => {
     findRoomId(data.room_id, (room) => {
       if (!room) return io.to(socket.id).emit('error', `Room with id ${data.room_id} does not exist.`);
       if (room.private && !socket.handshake.session.authorized_rooms.includes(data.room_id)) {
-        return io.to(socket.id).emit('error', "you are not authrorized to enter this room, please enter the room with credentials first");
+        return io.to(socket.id).emit('error', "You are not authrorized to enter this room, please enter the room with credentials first");
       }
       return io.to(socket.id).emit('redirect', { destination: `/room/${data.room_id}` });
     });
@@ -506,13 +508,12 @@ io.on('connection', socket => {
     findRoomId(data.room_id, (room) => {
       if (!room) return io.to(socket.id).emit('error', `Room with id ${data.room_id} does not exist.`);
       if (room.private && !socket.handshake.session.authorized_rooms.includes(data.room_id)) {
-        return io.to(socket.id).emit('error', "you are not authrorized to delete this room, please enter the room with credentials first");
+        return io.to(socket.id).emit('error', "You are not authrorized to delete this room, please enter the room with credentials first");
       }
       deleteRoom(data.room_id, () => {
         getRooms(room_list => {
           io.emit('listrooms', room_list);
           io.to(data.room_id).emit('redirect', { destination: '/index.html' });
-          //io.to(socket.id).emit('error', `deleted room ${room.room_name}`);
         });
       });
     });
@@ -532,7 +533,8 @@ io.on('connection', socket => {
     findLayer(data.room_id, data.new_layer_name, (item) => {
       if (item) return io.to(socket.id).emit('error', `The layer of name "${data.new_layer_name}" already exists.`);
       createLayer(data.room_id, data.new_layer_name, (item) => {
-        io.to(data.room_id).emit('layerload', { room_id: item.room_id, layer_name: item.layer_name, z_index: item.z_index, mode: "create" });
+        socket.broadcast.to(data.room_id).emit('layerload', { room_id: item.room_id, layer_name: item.layer_name, z_index: item.z_index, mode: "create", select: false });
+        io.to(socket.id).emit('layerload', { room_id: item.room_id, layer_name: item.layer_name, z_index: item.z_index, mode: "create", select: true });
       });
     })
   });
@@ -552,7 +554,8 @@ io.on('connection', socket => {
     findLayer(data.room_id, data.layer_name, (item) => {
       if (!item) return io.to(socket.id).emit('error', `The layer of name "${data.layer_name}" does not exist.`);
       duplicateLayer(data.room_id, data.layer_name, data.new_layer_name, (item) => {
-        io.to(data.room_id).emit('layerload', { room_id: item.room_id, layer_name: item.layer_name, z_index: item.z_index, mode: "duplicate", canvases: item.canvases });
+        socket.broadcast.to(data.room_id).emit('layerload', { room_id: item.room_id, layer_name: item.layer_name, z_index: item.z_index, mode: "duplicate", canvases: item.canvases, select: false });
+        io.to(socket.id).emit('layerload', { room_id: item.room_id, layer_name: item.layer_name, z_index: item.z_index, mode: "duplicate", canvases: item.canvases, select: true });
       });
     });
   });
