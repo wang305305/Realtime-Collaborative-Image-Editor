@@ -242,7 +242,6 @@ const getRoom = (room_id, callback) => {
 
 // creates a new layer.
 const createLayer = (room_id, new_layer_name, callback) => {
-  console.log("adding new layer to db")
   connect(db => {
     db.collection(room_layers).find({ room_id: room_id }).project({ z_index: 1 }).sort({ z_index: -1 }).limit(1).toArray((err, item) => {
       if (err) return console.error(err);
@@ -382,14 +381,14 @@ const saveLayer = (room_id, layer_name, url, callback) => {
           if (err) return console.error(err);
           let base64Data = url.replace(/^data:image\/png;base64,/, "");
           fs.writeFile(`images/${item.ops[0]._id}.png`, base64Data, 'base64', function (err) {
-            console.error(err);
+            if (err) return console.error(err);
           });
           callback(item.ops[0]._id);
         });
       } else {
         let base64Data = url.replace(/^data:image\/png;base64,/, "");
         fs.writeFile(`images/${item._id}.png`, base64Data, 'base64', function (err) {
-          console.error(err);
+          if (err) return console.error(err);
         });
         callback(item._id);
       }
@@ -422,7 +421,7 @@ const deleteRoom = (room_id, callback) => {
       items.forEach(item => {
         fs.unlink(`images/${item._id}.png`, () => { });
       });
-      console.log(`Deleted ${items.length} files from /images.`);
+      console.log(`Deleted ${items.length} files from ${__dirname}/images.`);
       // delete layer images.
       db.collection(layer_images).deleteMany({ room_id: room_id }, (err, res) => {
         if (err) return console.error(err);
@@ -445,7 +444,6 @@ io.on('connection', socket => {
 
   // join the room
   socket.on('joinroom', data => {
-    console.log("on joinroom")
     socket.join(data.room_id);
     findRoomId(data.room_id, (room) => {
       if (room) {

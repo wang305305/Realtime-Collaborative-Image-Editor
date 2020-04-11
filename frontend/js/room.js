@@ -87,12 +87,10 @@
 
   // first join the room.
   socket.on('firstjoin', data => {
-    console.log("on firstjoin")
     document.querySelector("#room_name").innerHTML = data.room_name + " Room";
     document.title = data.room_name + " Room - Realtime Collaborative Image Editor";
     data.layers.forEach((layer, i) => {
       // create layer and sync the data.
-      console.log("room_api.createLayer called in firstjoin")
       const new_layer = room_api.createLayer(layer.layer_name, layer.z_index, i == 0, true);
       // sync the points to the canvas layer.
       setTimeout(() => {
