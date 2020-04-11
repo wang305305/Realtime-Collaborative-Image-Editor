@@ -193,13 +193,16 @@ const findLayer = (room_id, layer, callback) => {
 // gets the entire room.
 const getRoom = (room_id, callback) => {
   connect(db => {
-    db.collection(room_layers).aggregate([{ $match: { room_id: room_id } }, { $lookup: { from: room_points, localField: "layer_name", foreignField: "layer_name", as: "entries" } }]).sort({ "z_index": 1 }).toArray((err, items) => {
+    db.collection(room_layers).aggregate([
+      { $match: { room_id: room_id } },
+      { $lookup: { from: room_points, localField: "layer_name", foreignField: "layer_name", as: "entries" } }
+    ]).sort({ "z_index": 1 }).toArray((err, items) => {
       if (err) return console.error(err);
       let result = { room_id: room_id, layers: [] }
       items.forEach(layer => {
         result.layers.push({
           layer_name: layer.layer_name,
-          canvases: layer.entries.map(entry => entry.canvas),
+          canvases: layer.entries.filter(entry => entry.room_id === room_id).map(entry => entry.canvas),
           z_index: layer.z_index
         });
       });
@@ -332,6 +335,7 @@ const updateLayer = (room_id, layer_name, canvas, callback) => {
       if (canvas.points[0][canvas.points[0].length - 1] == "start") canvas.points[0].pop();
       if (canvas.points[canvas.points.length - 1][canvas.points[canvas.points.length - 1].length - 1] == "end") canvas.points[canvas.points.length - 1].pop();
     }
+    canvas.startIndex = 0;
     db.collection('room_points').insertOne({ room_id: room_id, layer_name: layer_name, canvas: canvas }, (err, item) => {
       if (err) return console.error(err);
       callback(item);
