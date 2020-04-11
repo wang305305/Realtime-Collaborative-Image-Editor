@@ -27,13 +27,11 @@
         }
       };
     });
+
+    // create draggable list
     Sortable.create(layer_panel_list, options);
-    // write an error message to the screen.
-    socket.on('error', message => {
-      const error_text = document.querySelector("#room_error_text");
-      error_text.style.visibility = "visible";
-      error_text.innerHTML = message;
-    });
+
+    // add event listener for create layer
     document.querySelector("#create_layer").addEventListener("click", () => {
       let new_layer_name = document.querySelector("#layer_name_input").value
       if (new_layer_name) socket.emit('createlayer', { room_id: room_id, new_layer_name: new_layer_name })
@@ -85,6 +83,12 @@
     });
   });
 
+  // set the focus to the text input field and to clear the field after the dialog closes
+  window.$('#createLayerModal').on('shown.bs.modal', function (e) {
+    document.querySelector("#layer_name_input").value = "";
+    document.querySelector("#layer_name_input").focus();
+  });
+
   // first join the room.
   socket.on('firstjoin', data => {
     document.querySelector("#room_name").innerHTML = data.room_name + " Room";
@@ -112,6 +116,13 @@
   // redirect to index page.
   socket.on('redirect', data => {
     window.location.href = data.destination;
+  });
+
+  // write an error message to the screen.
+  socket.on('error', message => {
+    const error_text = document.querySelector("#room_error_text");
+    error_text.style.visibility = "visible";
+    error_text.innerHTML = message;
   });
 
   // sync layers
