@@ -89,6 +89,8 @@
 
   // display the list of rooms.
   socket.on('listrooms', rooms => {
+    document.querySelector("#error_text").innerHTML = "";
+    document.querySelector("#error_text").style.visibility = "hidden";
     const room_list_block = document.querySelector("#room_list_block");
     const room_list = document.querySelector("#room_list");
     const enter_room_input = document.querySelector("#enter_room_input");
