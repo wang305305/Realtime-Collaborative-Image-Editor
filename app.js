@@ -2,8 +2,6 @@ const express = require('express');
 const app = express();
 const http = require('http').createServer(app);
 const io = require('socket.io')(http);
-const fs = require("fs");
-
 
 const bodyParser = require('body-parser');
 app.use(bodyParser.urlencoded({ extended: false }));
@@ -106,15 +104,18 @@ app.get("/images/:layer_id", (req, res, next) => {
   let layer_id = req.params.layer_id;
   connect(db => {
     try {
-      db.collection(room_layers).findOne({ _id: ObjectID(layer_id), shared: true }, (err, item) => {
+      db.collection(room_layers).findOne({ _id: ObjectID(layer_id) }, (err, item) => {
         if (err) return console.error(err);
-        if (item && fs.existsSync(`${__dirname}/images/${layer_id}.png`))
-          return res.sendFile(`${__dirname}/images/${layer_id}.png`);
-        else if (item) {
-          db.collection(room_layers).updateOne({ _id: ObjectID(image_id) }, { $set: { shared: false } }, (err, res) => {
-            if (err) return console.error(err);
+        if (item && item.image) {
+          let buffer = Buffer.from(item.image, 'base64');
+          res.writeHead(200, {
+            'Content-Type': 'image/png',
+            'Content-Length': buffer.length
           });
-          return res.redirect('/index.html');
+          res.end(buffer);
+        }
+        else if (item && !item.image) {
+          return res.redirect(`/room/ + ${item.room_id}`);
         }
         else return res.redirect('/index.html');
       });
@@ -258,41 +259,34 @@ const deleteLayer = (room_id, layer_name, callback) => {
       if (err) return console.error(err);
       if (res.deletedCount) console.log(`Deleted ${res.deletedCount} documents from '${room_points} in layer ${layer_name}'.`);
     });
-    db.collection(room_layers).findOne({ room_id: room_id, layer_name: layer_name }, (err, item) => {
+    db.collection(room_layers).deleteOne({ room_id: room_id, layer_name: layer_name }, (err, res) => {
       if (err) return console.error(err);
-      if (item.shared) {
-        // delete image files.
-        fs.unlink(`images/${item._id}.png`, () => { });
-      }
-      db.collection(room_layers).deleteOne({ room_id: room_id, layer_name: layer_name }, (err, res) => {
-        if (err) return console.error(err);
-        if (res.deletedCount) console.log(`Deleted ${res.deletedCount} documents from '${room_layers}'.`);
-        // get the resulting layers z index.
-        db.collection(room_layers).find({ room_id: room_id }).sort({ z_index: 1 }).toArray((err, items) => {
-          // update the z_indexes.
-          let ops = [];
-          if (items.length > 0) {
-            items.forEach((item, i) => {
-              let op = {
-                "updateOne": {
-                  "filter": { "_id": item._id },
-                  "update": { $set: { "z_index": i } }
-                }
+      if (res.deletedCount) console.log(`Deleted ${res.deletedCount} documents from '${room_layers}'.`);
+      // get the resulting layers z index.
+      db.collection(room_layers).find({ room_id: room_id }).sort({ z_index: 1 }).toArray((err, items) => {
+        // update the z_indexes.
+        let ops = [];
+        if (items.length > 0) {
+          items.forEach((item, i) => {
+            let op = {
+              "updateOne": {
+                "filter": { "_id": item._id },
+                "update": { $set: { "z_index": i } }
               }
-              ops.push(op);
-            });
-            db.collection(room_layers).bulkWrite(ops, { "ordered": true, "w": 1 }, (err, res) => {
+            }
+            ops.push(op);
+          });
+          db.collection(room_layers).bulkWrite(ops, { "ordered": true, "w": 1 }, (err, res) => {
+            if (err) return console.error(err);
+            db.collection(room_layers).find({ room_id: room_id }).sort({ z_index: 1 }).toArray((err, items) => {
               if (err) return console.error(err);
-              db.collection(room_layers).find({ room_id: room_id }).sort({ z_index: 1 }).toArray((err, items) => {
-                if (err) return console.error(err);
-                callback(items);
-              });
+              callback(items);
             });
-          }
-          else {
-            callback([]);
-          }
-        });
+          });
+        }
+        else {
+          callback([]);
+        }
       });
     });
   });
@@ -379,23 +373,9 @@ const updateLayer = (room_id, layer_name, canvas, callback) => {
 const saveLayer = (room_id, layer_name, url, callback) => {
   let base64Data = url.replace(/^data:image\/png;base64,/, "");
   connect(db => {
-    db.collection(room_layers).findOne({ room_id: room_id, layer_name: layer_name }, (err, item) => {
+    db.collection(room_layers).findOneAndUpdate({ room_id: room_id, layer_name: layer_name }, { $set: { image: base64Data } }, { returnOriginal: false }, (err, item) => {
       if (err) return console.error(err);
-      // if the layer has not been shared.
-      if (!item.shared) {
-        db.collection(room_layers).updateOne({ room_id: room_id, layer_name: layer_name }, { $set: { shared: true } }, (err, updated) => {
-          if (err) return console.error(err);
-          fs.writeFile(`images/${item._id}.png`, base64Data, 'base64', (err) => {
-            if (err) return console.error(err);
-          });
-          callback(item._id);
-        });
-      } else {
-        fs.writeFile(`images/${item._id}.png`, base64Data, 'base64', (err) => {
-          if (err) return console.error(err);
-        });
-        callback(item._id);
-      }
+      callback(item.value._id);
     });
   });
 };
@@ -408,19 +388,10 @@ const deleteRoom = (room_id, callback) => {
       if (err) return console.error(err);
       if (res.deletedCount) console.log(`Deleted room '${room_id}'`);
     });
-    // delete room layers.
-    db.collection(room_layers).find({ room_id: room_id, shared: true }).toArray((err, items) => {
+    // delete layers.
+    db.collection(room_layers).deleteMany({ room_id: room_id }, (err, res) => {
       if (err) return console.error(err);
-      // delete image files.
-      items.forEach(item => {
-        fs.unlink(`images/${item._id}.png`, () => { });
-      });
-      if (items.length) console.log(`Deleted ${items.length} files from ${__dirname}/images.`);
-      // delete layers.
-      db.collection(room_layers).deleteMany({ room_id: room_id }, (err, res) => {
-        if (err) return console.error(err);
-        if (res.deletedCount) console.log(`Deleted ${res.deletedCount} documents from '${room_layers}'.`);
-      });
+      if (res.deletedCount) console.log(`Deleted ${res.deletedCount} documents from '${room_layers}'.`);
     });
     // delete points.
     db.collection(room_points).deleteMany({ room_id: room_id }, (err, res) => {

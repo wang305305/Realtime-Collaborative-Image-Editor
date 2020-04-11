@@ -40,8 +40,7 @@
     // add event listener for layer_delete button.
     document.querySelector("#layer_delete").addEventListener("click", () => {
       if (Object.keys(room_api.selected_layer).length == 0) {
-        socket.emit("error", "No layer selected to delete");
-        return;
+        return socket.emit("error", "No layer selected to delete");
       };
       let layer_name = room_api.selected_layer.canvas_layer.getAttribute("layer_name");
       if (layer_name) socket.emit('deletelayer', { room_id: room_id, layer_name: layer_name })
@@ -50,8 +49,7 @@
     // add event listener for layer_duplicate button.
     document.querySelector("#layer_duplicate").addEventListener("click", () => {
       if (Object.keys(room_api.selected_layer).length == 0) {
-        socket.emit("error", "No layer selected to duplicate");
-        return;
+        return socket.emit("error", "No layer selected to duplicate");
       };
       let new_layer_name = prompt("New Layer Name");
       let layer_name = room_api.selected_layer.canvas_layer.getAttribute("layer_name");
@@ -61,8 +59,7 @@
     // add event listener for layer_export button
     document.querySelector("#layer_export").addEventListener("click", () => {
       if (Object.keys(room_api.selected_layer).length == 0) {
-        alert("No layer selected to export");
-        return;
+        return socket.emit("error", "No layer selected to export");
       };
       let iframe = room_api.selected_layer.canvas_layer.querySelector('iframe');
       let iframeDocument = iframe.contentDocument || iframe.contentWindow.document;
@@ -73,8 +70,7 @@
     // add event listener for layer_share button
     document.querySelector("#layer_share").addEventListener("click", () => {
       if (Object.keys(room_api.selected_layer).length == 0) {
-        alert("No layer selected to export");
-        return;
+        return socket.emit("error", "No layer selected to share");
       };
       let iframe = room_api.selected_layer.canvas_layer.querySelector('iframe');
       let iframeDocument = iframe.contentDocument || iframe.contentWindow.document;
