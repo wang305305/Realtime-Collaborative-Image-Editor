@@ -24,7 +24,7 @@ const room_api = (function () {
       arc: true,
       bezier: false,
       quadratic: false,
-      text: true,
+      text: false,
       image: false,
       pdf: false,
       zoom: false,
