@@ -4,14 +4,14 @@
 
   const room_id = window.location.pathname.split("/")[2];
 
-  window.addEventListener('load', function () {
+  window.addEventListener('load', () => {
     // join the room on load.
     socket.emit('joinroom', { room_id: room_id });
 
     // move layer events.
     options = { animation: 150 };
-    events = ['onEnd'].forEach(function (name) {
-      options[name] = function (evt) {
+    events = ['onEnd'].forEach((name) => {
+      options[name] = (evt) => {
         let layer_name = evt.item.innerText;
         let oldIndex = evt.oldIndex;
         let newIndex = evt.newIndex;
@@ -84,10 +84,10 @@
   });
 
   // set the focus to the text input field and to clear the field after the dialog closes
-  window.$('#createLayerModal').on('hidden.bs.modal', function (e) {
+  window.$('#createLayerModal').on('hidden.bs.modal', () => {
     document.querySelector("#layer_name_input").value = "";
   });
-  window.$('#createLayerModal').on('shown.bs.modal', function (e) {
+  window.$('#createLayerModal').on('shown.bs.modal', () => {
     document.querySelector("#layer_name_input").focus();
   });
 
@@ -128,56 +128,61 @@
   });
 
   // sync layers
-  socket.on('layerload', data => {
+  socket.on('layercreate', data => {
     document.querySelector("#room_error_text").innerHTML = "";
     document.querySelector("#room_error_text").style.visibility = "hidden";
-    if (data.mode === "create") {
-      // create a new layer.
-      const new_layer = room_api.createLayer(data.layer_name, data.z_index);
-      // add the listener to the layer.
-      new_layer.designer.addSyncListener(canvasData => {
-        if (new_layer.canvas_layer.getAttribute("layer_name") === room_api.selected_layer.canvas_layer.getAttribute("layer_name")) {
-          let syncData = { room_id: room_id, layer_name: data.layer_name, canvas: canvasData };
-          socket.emit('canvasupdate', syncData);
-        }
-      });
-      // select the new layer if it is the only one or is creator.
-      if (room_api.layers.length == 1 || data.select) {
-        room_api.selectLayer(data.layer_name);
+    // create a new layer.
+    const new_layer = room_api.createLayer(data.layer_name, data.z_index);
+    // add the listener to the layer.
+    new_layer.designer.addSyncListener(canvasData => {
+      if (new_layer.canvas_layer.getAttribute("layer_name") === room_api.selected_layer.canvas_layer.getAttribute("layer_name")) {
+        let syncData = { room_id: room_id, layer_name: data.layer_name, canvas: canvasData };
+        socket.emit('canvasupdate', syncData);
       }
+    });
+    // select the new layer if it is the only one or is creator.
+    if (room_api.layers.length == 1 || data.select) {
+      room_api.selectLayer(data.layer_name);
     }
+  });
+  socket.on('layerdelete', data => {
+    document.querySelector("#room_error_text").innerHTML = "";
+    document.querySelector("#room_error_text").style.visibility = "hidden";
+    room_api.deleteLayer(data.layer_name, data.layers);
+  });
 
-    else if (data.mode === "delete") {
-      room_api.deleteLayer(data.layer_name, data.layers);
-    }
-
-    else if (data.mode === "duplicate") {
-      const new_layer = room_api.createLayer(data.layer_name, data.z_index);
-      // sync the points to the canvas layer.
-      setTimeout(() => {
-        data.canvases.forEach(canvas => {
-          new_layer.designer.syncData(canvas);
-        });
-      }, 500);
-      new_layer.designer.addSyncListener(canvasData => {
-        if (new_layer.layer_name === room_api.selected_layer.layer_name) {
-          let syncData = { room_id: room_id, layer_name: data.layer_name, canvas: canvasData };
-          socket.emit('canvasupdate', syncData);
-        }
+  socket.on('layerduplicate', data => {
+    document.querySelector("#room_error_text").innerHTML = "";
+    document.querySelector("#room_error_text").style.visibility = "hidden";
+    const new_layer = room_api.createLayer(data.layer_name, data.z_index);
+    // sync the points to the canvas layer.
+    setTimeout(() => {
+      data.canvases.forEach(canvas => {
+        new_layer.designer.syncData(canvas);
       });
-      // select the new layer if is creator.
-      if (data.select) {
-        room_api.selectLayer(data.layer_name);
+    }, 500);
+    new_layer.designer.addSyncListener(canvasData => {
+      if (new_layer.layer_name === room_api.selected_layer.layer_name) {
+        let syncData = { room_id: room_id, layer_name: data.layer_name, canvas: canvasData };
+        socket.emit('canvasupdate', syncData);
       }
+    });
+    // select the new layer if is creator.
+    if (data.select) {
+      room_api.selectLayer(data.layer_name);
     }
+  });
 
-    else if (data.mode === "move") {
-      room_api.moveLayer(data.layer_name, data.direction, data.layers);
-    }
+  socket.on('layermove', data => {
+    document.querySelector("#room_error_text").innerHTML = "";
+    document.querySelector("#room_error_text").style.visibility = "hidden";
+    room_api.moveLayer(data.layer_name, data.direction, data.layers);
   });
 
   // sync data
   socket.on('canvasload', data => {
+    document.querySelector("#room_error_text").innerHTML = "";
+    document.querySelector("#room_error_text").style.visibility = "hidden";
     room_api.layers.find(layer => layer.layer_name === data.layer_name).designer.syncData(data.canvas);
   });
 

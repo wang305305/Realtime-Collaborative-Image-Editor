@@ -39,16 +39,15 @@ app.use((req, res, next) => {
 
 const mongo = require('mongodb').MongoClient;
 
-// const url = 'mongodb://user1:123456a@ds245615.mlab.com:45615/heroku_lbg5q1hr';
-// const dbName = 'heroku_lbg5q1hr';
+const url = 'mongodb://user1:123456a@ds245615.mlab.com:45615/heroku_lbg5q1hr';
+const dbName = 'heroku_lbg5q1hr';
 
-const url = 'mongodb://localhost:27017';
-const dbName = 'test';
+// const url = 'mongodb://localhost:27017';
+// const dbName = 'test';
 
 const room_list = 'room_list';
 const room_layers = 'room_layers';
 const room_points = 'room_points';
-const layer_images = 'layer_images';
 
 // Connect using MongoClient
 const connect = (callback) => {
@@ -78,10 +77,6 @@ connect(db => {
       console.log(`creating collection '${room_points}'`);
       db.createCollection(room_points);
     }
-    if (collections.indexOf(layer_images) == -1) {
-      console.log(`creating collection '${layer_images}'`);
-      db.createCollection(layer_images);
-    }
   });
 });
 
@@ -107,24 +102,24 @@ app.get("/room/:room_id", (req, res, next) => {
 });
 
 // get the image, redirect if room doesn't exist.
-app.get("/images/:image_id", (req, res, next) => {
-  let image_id = req.params.image_id;
+app.get("/images/:layer_id", (req, res, next) => {
+  let layer_id = req.params.layer_id;
   connect(db => {
     try {
-      db.collection(layer_images).findOne({ _id: ObjectID(image_id) }, (err, item) => {
+      db.collection(room_layers).findOne({ _id: ObjectID(layer_id), shared: true }, (err, item) => {
         if (err) return console.error(err);
-        if (item && fs.existsSync(`${__dirname}/images/${image_id}.png`))
-          return res.sendFile(`${__dirname}/images/${image_id}.png`);
+        if (item && fs.existsSync(`${__dirname}/images/${layer_id}.png`))
+          return res.sendFile(`${__dirname}/images/${layer_id}.png`);
         else if (item) {
-          db.collection(layer_images).deleteOne({ _id: ObjectID(image_id) }, (err, res) => {
+          db.collection(room_layers).updateOne({ _id: ObjectID(image_id) }, { $set: { shared: false } }, (err, res) => {
             if (err) return console.error(err);
-            console.log(`Deleted ${res.deletedCount} documents from '${layer_images}'.`)
           });
           return res.redirect('/index.html');
         }
         else return res.redirect('/index.html');
       });
     } catch (error) {
+      console.error(error);
       return res.redirect('/index.html');
     }
   });
@@ -176,7 +171,7 @@ const is_authenticated = (room_id, password, callback) => {
     try {
       db.collection(room_list).findOne({ _id: ObjectID(room_id) }, (err, item) => {
         if (err) return console.error(err);
-        bcrypt.compare(password, item.password, function (err, valid) {
+        bcrypt.compare(password, item.password, (err, valid) => {
           return callback(valid);
         });
       });
@@ -197,8 +192,10 @@ const createRoom = (room_name, password, hid, callback) => {
     });
   }
   else {
-    bcrypt.genSalt(10, function (err, salt) {
-      bcrypt.hash(password, salt, function (err, hash) {
+    bcrypt.genSalt(10, (err, salt) => {
+      if (err) return console.error(err);
+      bcrypt.hash(password, salt, (err, hash) => {
+        if (err) return console.error(err);
         connect(db => {
           db.collection(room_list).insertOne({ room_name: room_name, password: hash, private: true, hidden: hid }, (err, item) => {
             if (err) return console.error(err);
@@ -261,34 +258,41 @@ const deleteLayer = (room_id, layer_name, callback) => {
       if (err) return console.error(err);
       if (res.deletedCount) console.log(`Deleted ${res.deletedCount} documents from '${room_points} in layer ${layer_name}'.`);
     });
-    db.collection(room_layers).deleteOne({ room_id: room_id, layer_name: layer_name }, (err, res) => {
+    db.collection(room_layers).findOne({ room_id: room_id, layer_name: layer_name }, (err, item) => {
       if (err) return console.error(err);
-      if (res.deletedCount) console.log(`Deleted ${res.deletedCount} documents from '${room_layers}'.`);
-      // get the resulting layers z index.
-      db.collection(room_layers).find({ room_id: room_id }).sort({ z_index: 1 }).toArray((err, items) => {
-        // update the z_indexes.
-        let ops = [];
-        if (items.length > 0) {
-          items.forEach((item, i) => {
-            let op = {
-              "updateOne": {
-                "filter": { "_id": item._id },
-                "update": { $set: { "z_index": i } }
+      if (item.shared) {
+        // delete image files.
+        fs.unlink(`images/${item._id}.png`, () => { });
+      }
+      db.collection(room_layers).deleteOne({ room_id: room_id, layer_name: layer_name }, (err, res) => {
+        if (err) return console.error(err);
+        if (res.deletedCount) console.log(`Deleted ${res.deletedCount} documents from '${room_layers}'.`);
+        // get the resulting layers z index.
+        db.collection(room_layers).find({ room_id: room_id }).sort({ z_index: 1 }).toArray((err, items) => {
+          // update the z_indexes.
+          let ops = [];
+          if (items.length > 0) {
+            items.forEach((item, i) => {
+              let op = {
+                "updateOne": {
+                  "filter": { "_id": item._id },
+                  "update": { $set: { "z_index": i } }
+                }
               }
-            }
-            ops.push(op);
-          });
-          db.collection(room_layers).bulkWrite(ops, { "ordered": true, "w": 1 }, (err, res) => {
-            if (err) return console.error(err);
-            db.collection(room_layers).find({ room_id: room_id }).sort({ z_index: 1 }).toArray((err, items) => {
-              if (err) return console.error(err);
-              callback(items);
+              ops.push(op);
             });
-          });
-        }
-        else {
-          callback([]);
-        }
+            db.collection(room_layers).bulkWrite(ops, { "ordered": true, "w": 1 }, (err, res) => {
+              if (err) return console.error(err);
+              db.collection(room_layers).find({ room_id: room_id }).sort({ z_index: 1 }).toArray((err, items) => {
+                if (err) return console.error(err);
+                callback(items);
+              });
+            });
+          }
+          else {
+            callback([]);
+          }
+        });
       });
     });
   });
@@ -373,22 +377,21 @@ const updateLayer = (room_id, layer_name, canvas, callback) => {
 
 // saves the layer image to file system and database.
 const saveLayer = (room_id, layer_name, url, callback) => {
+  let base64Data = url.replace(/^data:image\/png;base64,/, "");
   connect(db => {
-    db.collection(layer_images).findOne({ room_id: room_id, layer_name: layer_name }, (err, item) => {
+    db.collection(room_layers).findOne({ room_id: room_id, layer_name: layer_name }, (err, item) => {
       if (err) return console.error(err);
-      // if an image of the layer doesn't exist.
-      if (!item) {
-        db.collection(layer_images).insertOne({ room_id: room_id, layer_name: layer_name }, (err, item) => {
+      // if the layer has not been shared.
+      if (!item.shared) {
+        db.collection(room_layers).updateOne({ room_id: room_id, layer_name: layer_name }, { $set: { shared: true } }, (err, updated) => {
           if (err) return console.error(err);
-          let base64Data = url.replace(/^data:image\/png;base64,/, "");
-          fs.writeFile(`images/${item.ops[0]._id}.png`, base64Data, 'base64', function (err) {
+          fs.writeFile(`images/${item._id}.png`, base64Data, 'base64', (err) => {
             if (err) return console.error(err);
           });
-          callback(item.ops[0]._id);
+          callback(item._id);
         });
       } else {
-        let base64Data = url.replace(/^data:image\/png;base64,/, "");
-        fs.writeFile(`images/${item._id}.png`, base64Data, 'base64', function (err) {
+        fs.writeFile(`images/${item._id}.png`, base64Data, 'base64', (err) => {
           if (err) return console.error(err);
         });
         callback(item._id);
@@ -405,29 +408,24 @@ const deleteRoom = (room_id, callback) => {
       if (err) return console.error(err);
       if (res.deletedCount) console.log(`Deleted room '${room_id}'`);
     });
-    // delete layers.
-    db.collection(room_layers).deleteMany({ room_id: room_id }, (err, res) => {
-      if (err) return console.error(err);
-      if (res.deletedCount) console.log(`Deleted ${res.deletedCount} documents from '${room_layers}'.`);
-    });
-    // delete points.
-    db.collection(room_points).deleteMany({ room_id: room_id }, (err, res) => {
-      if (err) return console.error(err);
-      if (res.deletedCount) console.log(`Deleted ${res.deletedCount} documents from '${room_points}'.`);
-    });
-    // delete images.
-    db.collection(layer_images).find({ room_id: room_id }).toArray((err, items) => {
+    // delete room layers.
+    db.collection(room_layers).find({ room_id: room_id, shared: true }).toArray((err, items) => {
       if (err) return console.error(err);
       // delete image files.
       items.forEach(item => {
         fs.unlink(`images/${item._id}.png`, () => { });
       });
       if (items.length) console.log(`Deleted ${items.length} files from ${__dirname}/images.`);
-      // delete layer images.
-      db.collection(layer_images).deleteMany({ room_id: room_id }, (err, res) => {
+      // delete layers.
+      db.collection(room_layers).deleteMany({ room_id: room_id }, (err, res) => {
         if (err) return console.error(err);
-        if (res.deletedCount) console.log(`Deleted ${res.deletedCount} documents from '${layer_images}'.`);
+        if (res.deletedCount) console.log(`Deleted ${res.deletedCount} documents from '${room_layers}'.`);
       });
+    });
+    // delete points.
+    db.collection(room_points).deleteMany({ room_id: room_id }, (err, res) => {
+      if (err) return console.error(err);
+      if (res.deletedCount) console.log(`Deleted ${res.deletedCount} documents from '${room_points}'.`);
     });
     callback();
   });
@@ -524,8 +522,7 @@ io.on('connection', socket => {
     // send the update to all users in room.
     io.to(data.room_id).emit('canvasload', { room_id: data.room_id, layer_name: data.layer_name, canvas: data.canvas });
     // add the new canvas to the database.
-    updateLayer(data.room_id, data.layer_name, data.canvas, (item) => {
-    });
+    updateLayer(data.room_id, data.layer_name, data.canvas, () => { });
   });
 
   // create a new layer with name.
@@ -533,8 +530,8 @@ io.on('connection', socket => {
     findLayer(data.room_id, data.new_layer_name, (item) => {
       if (item) return io.to(socket.id).emit('error', `The layer of name "${data.new_layer_name}" already exists.`);
       createLayer(data.room_id, data.new_layer_name, (item) => {
-        socket.broadcast.to(data.room_id).emit('layerload', { room_id: item.room_id, layer_name: item.layer_name, z_index: item.z_index, mode: "create", select: false });
-        io.to(socket.id).emit('layerload', { room_id: item.room_id, layer_name: item.layer_name, z_index: item.z_index, mode: "create", select: true });
+        socket.broadcast.to(data.room_id).emit('layercreate', { room_id: item.room_id, layer_name: item.layer_name, z_index: item.z_index, select: false });
+        io.to(socket.id).emit('layercreate', { room_id: item.room_id, layer_name: item.layer_name, z_index: item.z_index, select: true });
       });
     })
   });
@@ -544,7 +541,7 @@ io.on('connection', socket => {
     findLayer(data.room_id, data.layer_name, (item) => {
       if (!item) return io.to(socket.id).emit('error', `The layer of name "${data.layer_name}" does not exist.`);
       deleteLayer(data.room_id, data.layer_name, (items) => {
-        io.to(data.room_id).emit('layerload', { room_id: data.room_id, layer_name: data.layer_name, mode: "delete", layers: items });
+        io.to(data.room_id).emit('layerdelete', { room_id: data.room_id, layer_name: data.layer_name, layers: items });
       });
     });
   });
@@ -554,8 +551,8 @@ io.on('connection', socket => {
     findLayer(data.room_id, data.layer_name, (item) => {
       if (!item) return io.to(socket.id).emit('error', `The layer of name "${data.layer_name}" does not exist.`);
       duplicateLayer(data.room_id, data.layer_name, data.new_layer_name, (item) => {
-        socket.broadcast.to(data.room_id).emit('layerload', { room_id: item.room_id, layer_name: item.layer_name, z_index: item.z_index, mode: "duplicate", canvases: item.canvases, select: false });
-        io.to(socket.id).emit('layerload', { room_id: item.room_id, layer_name: item.layer_name, z_index: item.z_index, mode: "duplicate", canvases: item.canvases, select: true });
+        socket.broadcast.to(data.room_id).emit('layerduplicate', { room_id: item.room_id, layer_name: item.layer_name, z_index: item.z_index, canvases: item.canvases, select: false });
+        io.to(socket.id).emit('layerduplicate', { room_id: item.room_id, layer_name: item.layer_name, z_index: item.z_index, canvases: item.canvases, select: true });
       });
     });
   });
@@ -565,7 +562,7 @@ io.on('connection', socket => {
     findLayer(data.room_id, data.layer_name, (item) => {
       if (!item) return io.to(socket.id).emit('error', `The layer of name "${data.layer_name}" does not exist.`);
       moveLayer(data.room_id, data.layer_name, data.direction, (items) => {
-        io.to(data.room_id).emit('layerload', { room_id: data.room_id, layer_name: data.layer_name, mode: "move", direction: data.direction, layers: items });
+        io.to(data.room_id).emit('layermove', { room_id: data.room_id, layer_name: data.layer_name, direction: data.direction, layers: items });
       });
     });
   });
