@@ -31,9 +31,9 @@
     // create draggable list
     Sortable.create(layer_panel_list, options);
 
-    // add event listener for create layer
+    // add event listener for create layer.
     document.querySelector("#create_layer").addEventListener("click", () => {
-      let new_layer_name = document.querySelector("#layer_name_input").value
+      let new_layer_name = document.querySelector("#create_layer_name_input").value
       if (new_layer_name) socket.emit('createlayer', { room_id: room_id, new_layer_name: new_layer_name })
     });
 
@@ -46,12 +46,20 @@
       if (layer_name) socket.emit('deletelayer', { room_id: room_id, layer_name: layer_name })
     });
 
-    // add event listener for layer_duplicate button.
+    // add event listener for layer_duplicate.
     document.querySelector("#layer_duplicate").addEventListener("click", () => {
       if (Object.keys(room_api.selected_layer).length == 0) {
         return socket.emit("error", "No layer selected to duplicate");
       };
-      let new_layer_name = prompt("New Layer Name");
+      window.$('#duplicateLayerModal').modal('toggle');
+    });
+
+    // add event listener for duplicate layer.
+    document.querySelector("#duplicate_layer").addEventListener("click", () => {
+      if (Object.keys(room_api.selected_layer).length == 0) {
+        return socket.emit("error", "No layer selected to duplicate");
+      };
+      let new_layer_name = document.querySelector("#duplicate_layer_name_input").value
       let layer_name = room_api.selected_layer.canvas_layer.getAttribute("layer_name");
       if (new_layer_name) socket.emit('duplicatelayer', { room_id: room_id, layer_name: layer_name, new_layer_name: new_layer_name })
     });
@@ -81,10 +89,16 @@
 
   // set the focus to the text input field and to clear the field after the dialog closes
   window.$('#createLayerModal').on('hidden.bs.modal', () => {
-    document.querySelector("#layer_name_input").value = "";
+    document.querySelector("#create_layer_name_input").value = "";
   });
   window.$('#createLayerModal').on('shown.bs.modal', () => {
-    document.querySelector("#layer_name_input").focus();
+    document.querySelector("#create_layer_name_input").focus();
+  });
+  window.$('#duplicateLayerModal').on('hidden.bs.modal', () => {
+    document.querySelector("#duplicate_layer_name_input").value = "";
+  });
+  window.$('#duplicateLayerModal').on('shown.bs.modal', () => {
+    document.querySelector("#duplicate_layer_name_input").focus();
   });
 
   // first join the room.
