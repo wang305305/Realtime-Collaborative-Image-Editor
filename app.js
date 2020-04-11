@@ -531,7 +531,8 @@ io.on('connection', socket => {
     findLayer(data.room_id, data.new_layer_name, (item) => {
       if (item) return io.to(socket.id).emit('error', `The layer of name "${data.new_layer_name}" already exists.`);
       createLayer(data.room_id, data.new_layer_name, (item) => {
-        io.to(data.room_id).emit('layerload', { room_id: item.room_id, layer_name: item.layer_name, z_index: item.z_index, mode: "create" });
+        socket.broadcast.to(data.room_id).emit('layerload', { room_id: item.room_id, layer_name: item.layer_name, z_index: item.z_index, mode: "create", select: false });
+        io.to(socket.id).emit('layerload', { room_id: item.room_id, layer_name: item.layer_name, z_index: item.z_index, mode: "create", select: true });
       });
     })
   });
@@ -551,7 +552,8 @@ io.on('connection', socket => {
     findLayer(data.room_id, data.layer_name, (item) => {
       if (!item) return io.to(socket.id).emit('error', `The layer of name "${data.layer_name}" does not exist.`);
       duplicateLayer(data.room_id, data.layer_name, data.new_layer_name, (item) => {
-        io.to(data.room_id).emit('layerload', { room_id: item.room_id, layer_name: item.layer_name, z_index: item.z_index, mode: "duplicate", canvases: item.canvases });
+        socket.broadcast.to(data.room_id).emit('layerload', { room_id: item.room_id, layer_name: item.layer_name, z_index: item.z_index, mode: "duplicate", canvases: item.canvases, select: false });
+        io.to(socket.id).emit('layerload', { room_id: item.room_id, layer_name: item.layer_name, z_index: item.z_index, mode: "duplicate", canvases: item.canvases, select: true });
       });
     });
   });

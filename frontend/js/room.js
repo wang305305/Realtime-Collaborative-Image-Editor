@@ -95,7 +95,7 @@
     document.title = data.room_name + " Room - Realtime Collaborative Image Editor";
     data.layers.forEach((layer, i) => {
       // create layer and sync the data.
-      const new_layer = room_api.createLayer(layer.layer_name, layer.z_index, i == 0, true);
+      const new_layer = room_api.createLayer(layer.layer_name, layer.z_index, i == data.layers.length - 1, true);
       // sync the points to the canvas layer.
       setTimeout(() => {
         layer.canvases.forEach(canvas => {
@@ -137,8 +137,8 @@
           socket.emit('canvasupdate', syncData);
         }
       });
-      // select the new layer if it is the only one.
-      if (room_api.layers.length == 1) {
+      // select the new layer if it is the only one or is creator.
+      if (room_api.layers.length == 1 || data.select) {
         room_api.selectLayer(data.layer_name);
       }
     }
@@ -161,6 +161,10 @@
           socket.emit('canvasupdate', syncData);
         }
       });
+      // select the new layer if is creator.
+      if (data.select) {
+        room_api.selectLayer(data.layer_name);
+      }
     }
 
     else if (data.mode === "move") {
@@ -178,9 +182,4 @@
     window.open(data);
   });
 
-  // error message
-  socket.on('error', data => {
-    console.error(data);
-    alert(data);
-  });
 }());
