@@ -134,7 +134,13 @@
   socket.on('error', message => {
     const error_text = document.querySelector("#room_error_text");
     error_text.style.visibility = "visible";
+    error_text.style.display = "block";
     error_text.innerHTML = message;
+    setTimeout(() => {
+      error_text.innerHTML = "";
+      error_text.style.visibility = "hidden";
+      error_text.style.display = "none";
+    }, 5000);
   });
 
   // sync layers

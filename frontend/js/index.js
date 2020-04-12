@@ -7,7 +7,7 @@
   document.querySelector("#button-addon2").addEventListener("click", e => {
     e.preventDefault();
     let room_id = document.querySelector("#enter_room_input").value;
-    socket.emit("enterroom", { room_id: room_id });
+    window.location.href = "/room/" + room_id;
   });
 
   // redirect
@@ -81,7 +81,26 @@
   socket.on('error', message => {
     const error_text = document.querySelector("#error_text");
     error_text.style.visibility = "visible";
+    error_text.style.display = "block";
     error_text.innerHTML = message;
+    setTimeout(() => {
+      error_text.innerHTML = "";
+      error_text.style.visibility = "hidden";
+      error_text.style.display = "none";
+    }, 5000);
+  });
+
+  // write an error message to the screen.
+  socket.on('success', message => {
+    const success_text = document.querySelector("#success_text");
+    success_text.style.visibility = "visible";
+    success_text.style.display = "block";
+    success_text.innerHTML = message;
+    setTimeout(() => {
+      success_text.innerHTML = "";
+      success_text.style.visibility = "hidden";
+      success_text.style.display = "none";
+    }, 5000);
   });
 
   // shows the new room id.

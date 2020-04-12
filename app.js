@@ -482,6 +482,7 @@ io.on('connection', socket => {
       deleteRoom(data.room_id, () => {
         getRooms(room_list => {
           io.emit('listrooms', room_list);
+          io.to(socket.id).emit('success', `Room with id ${data.room_id} was deleted.`);
           io.to(data.room_id).emit('redirect', { destination: '/index.html' });
         });
       });
