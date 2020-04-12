@@ -12,6 +12,7 @@
         <a href="/" id="title" class="navbar-brand">Home</a>
         <h1 class="">Realtime Collaborative Image Editor</h1>
       </nav>
+
       <!-- error box -->
       <div class="alert alert-danger alert-dismissible fade show" role="alert" id="error_text"
         style="visibility: hidden; display: none;">
@@ -19,6 +20,7 @@
           <span aria-hidden="true">&times;</span>
         </button>
       </div>
+
       <!-- success box -->
       <div class="alert alert-success alert-dismissible fade show" role="alert" id="success_text"
         style="visibility: hidden; display: none;">
@@ -28,6 +30,7 @@
       </div>
     </header>
     <br>
+
     <!-- create new room -->
     <div class="container d-flex justify-content-between" id="new-room">
       <div class="jumbotron new-room col-6" id="new-room2">
@@ -116,6 +119,7 @@
           </div>
         </div>
       </div>
+
       <!-- room list -->
       <div class="col-6 jumbotron room-list" id="room_list_block">
         <h2 class="display-6">Rooms</h2>
@@ -133,20 +137,13 @@
       </div>
     </div>
 
+    <link href="/style/bootstrap.min.css" rel="stylesheet" type="text/css" />
+    <link href="/style/main.css" rel="stylesheet" type="text/css" />
 
-    <script src="js/jquery.slim.min.js"></script>
-    <script src="js/bootstrap.min.js"></script>
+    <script src="/js/socket.io.js"></script>
+    <script src="/js/jquery.slim.min.js"></script>
+    <script src="/js/bootstrap.min.js"></script>
 
-    <link href="style/bootstrap.min.css" rel="stylesheet" type="text/css" />
-
-
-
-
-
-
-
-    <link href="style/main.css" rel="stylesheet" type="text/css" />
-    <script src="/socket.io/socket.io.js"></script>
     <script src="js/index.js"></script>
   </div>
 </body>

@@ -13,6 +13,7 @@
       <a href="/" id="title" class="navbar-brand">Home</a>
       <h1 class="">Realtime Collaborative Image Editor</h1>
     </nav>
+
     <!-- error box -->
     <div class="alert alert-danger alert-dismissible fade show" role="alert" id="room_error_text"
       style="visibility: hidden; display: none;">
@@ -43,6 +44,7 @@
             <div id="link"></div>
           </ul>
         </div>
+
         <!-- Create Layer Modal -->
         <div class="modal fade" id="createLayerModal" tabindex="-1" role="dialog" aria-labelledby="createLayerModal"
           aria-hidden="true">
@@ -97,21 +99,17 @@
     </div>
   </div>
 
-  <script src="/js/jquery.slim.min.js"></script>
-
-
-  <script src="/js/bootstrap.min.js"></script>
-
   <link href="/style/bootstrap.min.css" rel="stylesheet" type="text/css" />
   <link href="/style/main.css" rel="stylesheet" />
   <link href="/style/room.css" rel="stylesheet" />
 
+  <script src="/js/socket.io.js"></script>
+  <script src="/js/jquery.slim.min.js"></script>
+  <script src="/js/bootstrap.min.js"></script>
   <script src="/js/Sortable.js"></script>
-
-
   <script src="/js/canvas-designer-widget.js"></script>
   <script src="/js/canvas2image.js"></script>
-  <script src="/socket.io/socket.io.js"></script>
+
   <script src="/js/room_api.js"></script>
   <script src="/js/room.js"></script>
 

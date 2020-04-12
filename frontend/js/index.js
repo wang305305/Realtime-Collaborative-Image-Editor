@@ -10,12 +10,12 @@
     window.location.href = "/room/" + room_id;
   });
 
-  // redirect
+  // redirect to destination.
   socket.on('redirect', data => {
     window.location.href = data.destination;
   });
 
-  //delete a room
+  // delete a room
   document.querySelector("#delete-button").addEventListener("click", e => {
     e.preventDefault();
     let room_id = document.querySelector("#enter_room_input").value;
