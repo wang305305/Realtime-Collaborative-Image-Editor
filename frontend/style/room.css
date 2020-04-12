@@ -5,7 +5,7 @@
 }
 
 #room_name {
-  min-height: 37px;
+  min-height: 48px;
 }
 
 .layers {
@@ -16,10 +16,11 @@
 .main-content {
   padding-left: 30px;
 }
-#layer_panel_list{
-  overflow:hidden;
-  overflow-y:auto;
-  height:445px;
+
+#layer_panel_list {
+  overflow: hidden;
+  overflow-y: auto;
+  height: 445px;
 }
 
 .canvas_layer.hidden {
@@ -67,30 +68,6 @@
   border: solid black 2px;
 }
 
-.native-hidden {
-  -webkit-appearance: none;
-  -moz-appearance: none;
-  appearance: none;
-}
-
 .eye {
   cursor: pointer;
-}
-
-input[type="checkbox"] {
-  content: url('../uploads/vis.png');
-  display: block;
-  width: 45px;
-  height: 25px;
-  margin: 5px;
-  margin-top: 7px;
-}
-
-input[type="checkbox"]:checked {
-  content: url('../uploads/invis.png');
-  display: block;
-  width: 45px;
-  height: 30px;
-  margin: 5px;
-  margin-top: 7px;
 }
